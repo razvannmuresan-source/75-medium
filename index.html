@@ -146,25 +146,6 @@
     text-align: right;
   }
 
-  /* RESET BUTTON */
-  .reset-btn {
-    background: none;
-    border: 1px solid #3a3d45;
-    color: var(--faded);
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    padding: 6px 14px;
-    cursor: pointer;
-    transition: all 0.2s;
-    margin-left: auto;
-  }
-  .reset-btn:hover {
-    border-color: var(--red);
-    color: var(--red);
-  }
-
   /* TASKS */
   .tasks-container {
     padding: 32px;
@@ -277,71 +258,6 @@
     align-self: center;
   }
 
-  /* WATER TRACKER */
-  .water-task {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .water-task .task-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
-    width: 100%;
-  }
-
-  .water-cups {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    padding-left: 38px;
-  }
-
-  .cup {
-    width: 34px;
-    height: 40px;
-    border: 2px solid #3a3d45;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    cursor: pointer;
-    transition: all 0.15s;
-    background: transparent;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .cup::before {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 0%;
-    background: linear-gradient(180deg, rgba(74, 144, 226, 0.6), rgba(74, 144, 226, 0.9));
-    transition: height 0.3s ease;
-  }
-
-  .cup.filled::before { height: 100%; }
-  .cup.filled { border-color: #4a90e2; }
-
-  .cup span {
-    position: relative;
-    z-index: 1;
-    font-size: 16px;
-    filter: grayscale(1);
-    transition: filter 0.2s;
-  }
-  .cup.filled span { filter: none; }
-
-  .water-count {
-    font-size: 11px;
-    color: #4a90e2;
-    letter-spacing: 1px;
-    padding-left: 38px;
-  }
-
   /* COMPLETE BANNER */
   .complete-banner {
     display: none;
@@ -404,12 +320,6 @@
     color: var(--red);
     line-height: 1;
     transition: transform 0.2s;
-  }
-
-  .strike-count-label {
-    font-size: 13px;
-    color: var(--red);
-    font-weight: 700;
   }
 
   .strikes-warning {
@@ -682,15 +592,6 @@
   .history-card:not(.future):hover .hcard-tooltip { display: block; }
   .history-card:not(.future):active .hcard-tooltip { display: block; }
 
-  .history-empty {
-    font-size: 11px;
-    color: var(--faded);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    text-align: center;
-    padding: 60px 0;
-  }
-
   .history-summary {
     display: flex;
     gap: 24px;
@@ -780,155 +681,6 @@
   .reward-chip.used { border-color: #383c47; color: #3a3d45; background: none; cursor: default; text-decoration: line-through; }
   .reward-chip.rest-active { border-color: #f5b942; color: #f5b942; background: #1e1a0a; }
 
-  /* BACKDATE MODAL */
-  .backdate-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(5,15,7,0.95);
-    z-index: 1000;
-    overflow-y: auto;
-    padding: 32px 16px;
-  }
-
-  .backdate-overlay.show { display: block; }
-
-  .backdate-modal {
-    max-width: 520px;
-    margin: 0 auto;
-    background: #1e2028;
-    border: 1px solid #383c47;
-    border-top: 4px solid var(--red);
-  }
-
-  .backdate-header {
-    padding: 24px 28px 16px;
-    border-bottom: 1px solid #252830;
-  }
-
-  .backdate-header h3 {
-    font-family: 'Black Han Sans', sans-serif;
-    font-size: 28px;
-    letter-spacing: 2px;
-    color: var(--white);
-    line-height: 1;
-    margin-bottom: 4px;
-  }
-
-  .backdate-header p {
-    font-size: 10px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--faded);
-  }
-
-  .backdate-body {
-    padding: 20px 28px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .backdate-task {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 14px 16px;
-    background: var(--steel);
-    border: 1px solid #2c2f38;
-    border-left: 3px solid transparent;
-    cursor: pointer;
-    user-select: none;
-    transition: all 0.15s;
-  }
-
-  .backdate-task:hover { border-left-color: var(--red); background: #333740; }
-  .backdate-task.done { border-left-color: var(--orange); background: #1e2028; opacity: 0.75; }
-  .backdate-task.done .bt-title { text-decoration: line-through; color: var(--faded); }
-
-  .bt-check {
-    width: 20px; height: 20px;
-    border: 2px solid #4a4e5a;
-    flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 700; color: #000;
-    transition: all 0.15s;
-  }
-
-  .backdate-task.done .bt-check { background: var(--orange); border-color: var(--orange); }
-
-  .bt-title { font-size: 13px; font-weight: 700; flex: 1; transition: all 0.15s; }
-
-  .backdate-inputs {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-top: 4px;
-  }
-
-  .backdate-input-wrap {
-    background: var(--steel);
-    border: 1px solid #2c2f38;
-    padding: 12px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .backdate-input-wrap label {
-    font-size: 9px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--faded);
-  }
-
-  .backdate-input-wrap input {
-    background: #1e2028;
-    border: 1px solid #3a3d45;
-    color: var(--white);
-    font-family: 'Space Mono', monospace;
-    font-size: 13px;
-    padding: 6px 10px;
-    outline: none;
-    width: 100%;
-  }
-
-  .backdate-footer {
-    padding: 16px 28px 24px;
-    display: flex;
-    gap: 10px;
-  }
-
-  .backdate-submit {
-    flex: 1;
-    background: var(--red);
-    border: none;
-    color: #fff;
-    font-family: 'Black Han Sans', sans-serif;
-    font-size: 15px;
-    letter-spacing: 3px;
-    padding: 14px;
-    cursor: pointer;
-    transition: opacity 0.2s;
-  }
-
-  .backdate-submit:hover { opacity: 0.88; }
-
-  .backdate-cancel {
-    background: none;
-    border: 1px solid #3a3d45;
-    color: var(--faded);
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 2px;
-    padding: 14px 18px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .backdate-cancel:hover { border-color: var(--white); color: var(--white); }
-
-  /* BACKDATE modal */
   /* BACKDATE OVERLAY */
   .backdate-overlay {
     display: none;
@@ -1031,11 +783,9 @@
 
     /* Progress */
     .progress-section { padding: 14px 16px; }
-    .progress-info { font-size: 10px; }
 
     /* Strikes */
     .strikes-section { padding: 10px 16px; }
-    .strike-pip { width: 28px; height: 28px; font-size: 11px; }
 
     /* Tabs */
     .tab-nav { padding: 0 16px; gap: 0; }
@@ -1049,9 +799,6 @@
     .task-title { font-size: 13px; }
     .task-desc { font-size: 10px; }
     .task-tag { font-size: 8px; letter-spacing: 1px; padding: 2px 6px; }
-
-    /* Accountability 2-col grid → single col on small screens */
-    .accountability-grid { grid-template-columns: 1fr !important; }
 
     /* Water/input tasks */
     .water-task { padding: 14px; }
@@ -1071,9 +818,6 @@
     /* Complete banner */
     .complete-banner { padding: 20px 16px; }
     .complete-banner h2 { font-size: 22px; }
-
-    /* Rules card */
-    .rules-card { padding: 14px; font-size: 10px; }
 
     /* History container */
     .history-container { padding: 16px 12px; }
@@ -1152,8 +896,6 @@
   </div>
   <div class="strikes-warning" id="strikesWarning"></div>
 </div>
-
-<!-- Restart overlay -->
 
 <div class="tab-nav">
   <button class="tab-btn active" id="tab-today" onclick="switchTab('today')">Today</button>
@@ -1603,10 +1345,6 @@
         <div class="hsummary-val" style="color:var(--white)">${streak}</div>
         <div class="hsummary-label">Current Streak</div>
       </div>
-      <div class="hsummary-item">
-        <div class="hsummary-val" style="color:var(--faded)">${sortedLogged.length}/75</div>
-        <div class="hsummary-label">Days Logged</div>
-      </div>
       ${badgeHTML}
     `;
 
@@ -1762,6 +1500,7 @@
       saveState();
       updateSubmitBtn();
       renderStrikes();
+      updateProgress();
       return;
     }
     const allMandatoryDone = MANDATORY_TASKS.every(t => document.getElementById('task-' + t).classList.contains('done'));
@@ -1775,6 +1514,7 @@
     saveState();
     updateSubmitBtn();
     renderStrikes();
+    updateProgress();
   }
 
   function updateSubmitBtn() {
@@ -1925,9 +1665,9 @@
           yWeight: {
             type: 'linear',
             position: 'left',
-            ticks: { color: '#74c69d', font: { family: 'Space Mono', size: 9 } },
+            ticks: { color: 'var(--orange)', font: { family: 'Space Mono', size: 9 } },
             grid: { color: '#1e2028' },
-            title: { display: true, text: 'kg', color: '#74c69d', font: { family: 'Space Mono', size: 9 } },
+            title: { display: true, text: 'kg', color: 'var(--orange)', font: { family: 'Space Mono', size: 9 } },
           },
           ...(showKcal ? {
             yKcal: {
@@ -1961,19 +1701,6 @@
     renderStrikes();
     updateWeighUI(); updateKcalUI(); updateProgress(); updateSubmitBtn();
     renderHistory();
-  }
-
-  function confirmRestart() {
-    strikes = 0; todayStruck = false;
-    [...MANDATORY_TASKS, ...OPTIONAL_TASKS].forEach(t => document.getElementById('task-' + t).classList.remove('done'));
-    weightDone = false; kcalDone = false; kcalFail = false;
-    document.getElementById('weightInput').value = '';
-    document.getElementById('kcalInput').value = '';
-    updateWeighUI(); updateKcalUI(); renderStrikes();
-    for (const key of Object.keys(localStorage)) {
-      if (key.startsWith('75hard_')) localStorage.removeItem(key);
-    }
-    saveState(); updateProgress();
   }
 
   function toggleTask(id) {
@@ -2050,13 +1777,13 @@
     }
 
     if (kcalFail) {
-      container.classList.remove('done'); container.style.borderLeftColor = '#2d6a4f';
+      container.classList.remove('done'); container.style.borderLeftColor = 'var(--red)';
       check.classList.remove('done');
-      check.style.background = '#2d6a4f'; check.style.borderColor = '#2d6a4f';
+      check.style.background = 'var(--red)'; check.style.borderColor = 'var(--red)';
       check.querySelector('.check-icon').style.display = 'block';
       check.querySelector('.check-icon').textContent = '✗';
-      title.style.textDecoration = 'none'; title.style.color = '#2d6a4f';
-      statusEl.style.color = '#2d6a4f';
+      title.style.textDecoration = 'none'; title.style.color = 'var(--red)';
+      statusEl.style.color = 'var(--red)';
       statusEl.textContent = '✗ Over limit by ' + Math.round(val - KCAL_LIMIT) + ' kcal — strike logged';
     } else {
       container.classList.add('done'); container.style.borderLeftColor = '';
@@ -2096,41 +1823,6 @@
 
   initUI();
 </script>
-
-<!-- Backdate modal -->
-<div class="backdate-overlay" id="backdateOverlay">
-  <div class="backdate-modal">
-    <div class="backdate-header">
-      <h3 id="backdateTitle">LOG MISSED DAY</h3>
-      <p id="backdateSubtitle">Retroactive entry</p>
-    </div>
-    <div class="backdate-body">
-      <div class="backdate-task" id="bt-steps" onclick="toggleBt('steps')">
-        <div class="bt-check" id="btc-steps"></div>
-        <div class="bt-title">6,000 Steps</div>
-      </div>
-      <div class="backdate-task" id="bt-workout" onclick="toggleBt('workout')">
-        <div class="bt-check" id="btc-workout"></div>
-        <div class="bt-title">Workout — 45 Minutes <span style="font-size:10px;color:#4a4e5a;font-weight:400;">(optional)</span></div>
-      </div>
-      <div class="backdate-inputs">
-        <div class="backdate-input-wrap">
-          <label>Weight (kg)</label>
-          <input type="number" id="bt-weight" placeholder="e.g. 82.5" step="0.1" min="20" max="300" />
-        </div>
-        <div class="backdate-input-wrap" id="bt-kcal-wrap">
-          <label>Calories (kcal)</label>
-          <input type="number" id="bt-kcal" placeholder="e.g. 1600" step="1" min="0" max="9999" />
-        </div>
-      </div>
-      <div style="font-size:10px; color:var(--faded); letter-spacing:1px; margin-top:4px;" id="bt-kcal-hint"></div>
-    </div>
-    <div class="backdate-footer">
-      <button class="backdate-submit" onclick="submitBackdate()">Submit Day</button>
-      <button class="backdate-cancel" onclick="closeBackdate()">Cancel</button>
-    </div>
-  </div>
-</div>
 
 </body>
 </html>
