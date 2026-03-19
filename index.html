@@ -804,13 +804,6 @@
     .water-task { padding: 14px; }
     .water-task .task-header { gap: 12px; }
 
-    /* Number inputs fill width on mobile */
-    .bd-input, #weightInput, #kcalInput {
-      width: 90px !important;
-      font-size: 14px !important;
-      padding: 10px 10px !important;
-    }
-
     /* Submit button */
     .submit-wrap { padding: 16px 12px 8px; }
     .submit-btn { font-size: 15px; letter-spacing: 3px; padding: 16px; }
@@ -938,48 +931,40 @@
 
   <div class="section-label">— Accountability</div>
 
-  <div style="display:flex; flex-direction:column; gap:12px;">
-
-    <!-- Kcal Tracker -->
-    <div class="task water-task" id="task-kcal-container" style="cursor:default;">
-      <div class="task-header">
-        <div class="check-box" id="kcal-check"><span class="check-icon">✓</span></div>
-        <div class="task-info">
-          <div class="task-title" id="kcal-title">Daily Calories</div>
-          <div class="task-desc">Must stay at or under 1,750 kcal.</div>
-        </div>
-        <div class="task-tag">Mandatory</div>
-      </div>
-      <div style="padding-left:38px; display:flex; align-items:center; gap:10px; margin-top:8px;">
-        <input type="number" id="kcalInput" placeholder="" step="1" min="0" max="9999"
+  <!-- Kcal Tracker -->
+  <div class="task" id="task-kcal-container" style="cursor:default; flex-wrap:wrap; gap:12px;">
+    <div class="check-box" id="kcal-check"><span class="check-icon">✓</span></div>
+    <div class="task-info" style="flex:1; min-width:0;">
+      <div class="task-title" id="kcal-title">Daily Calories</div>
+      <div class="task-desc">Must stay at or under 1,750 kcal.</div>
+      <div style="display:flex; align-items:center; gap:8px; margin-top:10px;">
+        <input type="number" id="kcalInput" placeholder="0" step="1" min="0" max="9999"
           style="background:#1e2028; border:1px solid #3a3d45; color:var(--white); font-family:'Space Mono',monospace;
-                 font-size:13px; padding:8px 12px; width:110px; outline:none; letter-spacing:1px;"
+                 font-size:15px; padding:8px 10px; width:120px; outline:none; letter-spacing:1px;"
           oninput="checkKcal()" />
         <span style="font-size:11px; color:var(--faded); letter-spacing:2px;">KCAL</span>
       </div>
-      <div style="padding-left:38px; font-size:11px; letter-spacing:1px; margin-top:6px;" id="kcalStatus"></div>
+      <div style="font-size:11px; letter-spacing:1px; margin-top:6px;" id="kcalStatus"></div>
     </div>
+    <div class="task-tag">Mandatory</div>
+  </div>
 
-    <!-- Weigh-in Task -->
-    <div class="task water-task" id="task-weigh-container" style="cursor:default;">
-      <div class="task-header">
-        <div class="check-box" id="weigh-check"><span class="check-icon">✓</span></div>
-        <div class="task-info">
-          <div class="task-title" id="weigh-title">Weigh Yourself</div>
-          <div class="task-desc">Log your morning weight in kg.</div>
-        </div>
-        <div class="task-tag">Mandatory</div>
-      </div>
-      <div style="padding-left:38px; display:flex; align-items:center; gap:10px; margin-top:8px;">
-        <input type="number" id="weightInput" placeholder="" step="0.1" min="20" max="300"
+  <!-- Weigh-in Task -->
+  <div class="task" id="task-weigh-container" style="cursor:default; flex-wrap:wrap; gap:12px;">
+    <div class="check-box" id="weigh-check"><span class="check-icon">✓</span></div>
+    <div class="task-info" style="flex:1; min-width:0;">
+      <div class="task-title" id="weigh-title">Weigh Yourself</div>
+      <div class="task-desc">Log your morning weight in kg.</div>
+      <div style="display:flex; align-items:center; gap:8px; margin-top:10px;">
+        <input type="number" id="weightInput" placeholder="0.0" step="0.1" min="20" max="300"
           style="background:#1e2028; border:1px solid #3a3d45; color:var(--white); font-family:'Space Mono',monospace;
-                 font-size:13px; padding:8px 12px; width:110px; outline:none; letter-spacing:1px;"
+                 font-size:15px; padding:8px 10px; width:120px; outline:none; letter-spacing:1px;"
           oninput="checkWeight()" />
         <span style="font-size:11px; color:var(--faded); letter-spacing:2px;">KG</span>
       </div>
-      <div style="padding-left:38px; font-size:11px; letter-spacing:1px; margin-top:6px;" id="weighHistory"></div>
+      <div style="font-size:11px; letter-spacing:1px; margin-top:6px;" id="weighHistory"></div>
     </div>
-
+    <div class="task-tag">Mandatory</div>
   </div>
 
 </div>
