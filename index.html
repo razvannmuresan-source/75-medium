@@ -450,6 +450,84 @@
 
   .restart-overlay button:hover { opacity: 0.85; }
 
+  /* SETUP OVERLAY */
+  .setup-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--black);
+    z-index: 2000;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+  }
+  .setup-overlay.show { display: flex; }
+  .setup-box {
+    width: 100%;
+    max-width: 420px;
+    background: #1e2028;
+    border: 1px solid #383c47;
+    border-top: 4px solid var(--red);
+    padding: 36px 32px 32px;
+    text-align: center;
+  }
+  .setup-box h2 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 32px;
+    letter-spacing: 2px;
+    color: var(--white);
+    margin-bottom: 8px;
+  }
+  .setup-box p {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--faded);
+    margin-bottom: 32px;
+    line-height: 1.8;
+  }
+  .setup-date-label {
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--faded);
+    margin-bottom: 10px;
+    text-align: left;
+  }
+  .setup-date-input {
+    width: 100%;
+    background: #252830;
+    border: 1px solid #3a3d45;
+    color: var(--white);
+    font-family: 'Space Mono', monospace;
+    font-size: 16px;
+    padding: 14px 16px;
+    outline: none;
+    margin-bottom: 24px;
+    letter-spacing: 1px;
+  }
+  .setup-btn {
+    width: 100%;
+    background: var(--red);
+    border: none;
+    color: #fff;
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 18px;
+    letter-spacing: 4px;
+    padding: 18px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .setup-btn:hover { opacity: 0.88; }
+  .setup-note {
+    font-size: 9px;
+    color: #4a4e5a;
+    letter-spacing: 1px;
+    margin-top: 16px;
+    text-align: center;
+  }
+
   /* TABS */
   .tab-nav {
     background: #1e2028;
@@ -1072,6 +1150,18 @@
   </div>
 </div>
 
+<!-- Setup overlay -->
+<div class="setup-overlay" id="setupOverlay">
+  <div class="setup-box">
+    <h2>WELCOME</h2>
+    <p>Choose your start date.<br>Your 15-week journey begins here.</p>
+    <div class="setup-date-label">Start Date</div>
+    <input type="date" id="setupDateInput" class="setup-date-input" />
+    <button class="setup-btn" onclick="confirmSetup()">Start Tracker</button>
+    <div class="setup-note">You can always wipe and restart from settings.</div>
+  </div>
+</div>
+
 <!-- Wipe confirmation overlay -->
 <div class="restart-overlay" id="wipeOverlay">
   <h2 style="color:var(--red);">WIPE ALL DATA?</h2>
@@ -1269,15 +1359,18 @@
 
     // Load all logged day keys
     const loggedKeys = Object.keys(localStorage)
-      .filter(k => k.startsWith('75hard_') && k !== '75hard_global');
+      .filter(k => k.startsWith('75hard_') && k !== '75hard_global' && k !== '75hard_startDate' && k !== '75hard_setupDone');
 
-    // Sort logged days ascending to determine Day 1
+    // Sort logged days ascending
     const sortedLogged = loggedKeys
       .map(k => k.replace('75hard_', ''))
       .sort((a, b) => new Date(a) - new Date(b));
 
-    // Day 1 is the earliest logged day, or today if nothing yet
-    const day1 = sortedLogged.length > 0 ? new Date(sortedLogged[0]) : new Date(today);
+    // Day 1 is the saved start date, or earliest logged day, or today
+    const savedStart = localStorage.getItem('75hard_startDate');
+    const day1 = savedStart ? new Date(savedStart)
+      : sortedLogged.length > 0 ? new Date(sortedLogged[0])
+      : new Date(today);
 
     // Build a map of dateStr -> state
     const dayMap = {};
@@ -1526,7 +1619,7 @@
 
     // Compute streak from localStorage
     const loggedKeys = Object.keys(localStorage)
-      .filter(k => k.startsWith('75hard_') && k !== '75hard_global')
+      .filter(k => k.startsWith('75hard_') && k !== '75hard_global' && k !== '75hard_startDate' && k !== '75hard_setupDone')
       .map(k => k.replace('75hard_', ''))
       .sort((a, b) => new Date(b) - new Date(a));
     let streak = 0;
@@ -1567,7 +1660,7 @@
 
   function renderChart() {
     const loggedKeys = Object.keys(localStorage)
-      .filter(k => k.startsWith('75hard_') && k !== '75hard_global')
+      .filter(k => k.startsWith('75hard_') && k !== '75hard_global' && k !== '75hard_startDate' && k !== '75hard_setupDone')
       .sort((a, b) => new Date(a.replace('75hard_', '')) - new Date(b.replace('75hard_', '')));
 
     const labels = [], weightData = [], kcalData = [];
@@ -1668,12 +1761,34 @@
     });
   }
 
+  function showSetup() {
+    const input = document.getElementById('setupDateInput');
+    const today = new Date();
+    input.value = today.toISOString().split('T')[0];
+    document.getElementById('setupOverlay').classList.add('show');
+  }
+
+  function confirmSetup() {
+    const val = document.getElementById('setupDateInput').value;
+    if (!val) return;
+    const d = new Date(val + 'T00:00:00');
+    const dateStr = d.toDateString();
+    localStorage.setItem('75hard_startDate', dateStr);
+    // Seed start date as day 1 entry if not already logged
+    if (!localStorage.getItem('75hard_' + dateStr)) {
+      localStorage.setItem('75hard_' + dateStr, JSON.stringify({ startDay: true, completed: false, progress: 0 }));
+    }
+    localStorage.setItem('75hard_setupDone', '1');
+    document.getElementById('setupOverlay').classList.remove('show');
+  }
+
   function showWipeConfirm() {
     document.getElementById('wipeOverlay').classList.add('show');
   }
 
   function confirmWipe() {
     Object.keys(localStorage).filter(k => k.startsWith('75hard_')).forEach(k => localStorage.removeItem(k));
+    localStorage.removeItem('75hard_startDate');
     strikes = 0; todayStruck = false; daySubmitted = false;
     weightDone = false; kcalDone = false; kcalFail = false;
     [...MANDATORY_TASKS, ...OPTIONAL_TASKS].forEach(t => {
@@ -1685,7 +1800,9 @@
     document.getElementById('wipeOverlay').classList.remove('show');
     renderStrikes();
     updateWeighUI(); updateKcalUI(); updateProgress(); updateSubmitBtn();
-    renderHistory();
+    switchTab('today');
+    localStorage.removeItem('75hard_setupDone');
+    showSetup();
   }
 
   function toggleTask(id) {
@@ -1807,6 +1924,7 @@
   }
 
   initUI();
+  if (!localStorage.getItem('75hard_setupDone')) showSetup();
 </script>
 
 </body>
