@@ -3,539 +3,2134 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>75 Medium Tracker</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   :root {
-    --bg: #f5f0eb;
-    --card: #ffffff;
-    --green: #4caf50;
-    --green-light: #f0faf1;
-    --blue: #2196f3;
-    --red: #f44336;
-    --orange: #ff9800;
-    --text: #2d2d2d;
-    --muted: #888;
-    --border: #f0f0f0;
-    --shadow: 0 2px 8px rgba(0,0,0,0.07);
+    --black: #181a1f;
+    --white: #f0f0eb;
+    --red: #d4870a;
+    --orange: #f5b942;
+    --steel: #252830;
+    --mid: #3a3d45;
+    --faded: #7a7e8a;
   }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'DM Sans', sans-serif; background: var(--bg); min-height: 100vh; padding: 24px 16px; color: var(--text); }
-  h1 { font-family: 'DM Serif Display', serif; font-size: 28px; }
-  .container { max-width: 700px; margin: 0 auto; }
-  .header { text-align: center; margin-bottom: 24px; }
-  .header p { color: var(--muted); margin-top: 4px; font-size: 14px; }
 
-  .start-banner { background: var(--card); border-radius: 12px; padding: 24px 20px; margin-bottom: 24px; box-shadow: var(--shadow); text-align: center; }
-  .start-banner h3 { font-family: 'DM Serif Display', serif; margin-bottom: 8px; font-size: 20px; }
-  .start-banner p { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
-  .start-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
-  .start-banner input[type="date"] { padding: 10px 16px; border-radius: 8px; border: 1px solid #ddd; font-size: 15px; font-family: 'DM Sans', sans-serif; }
-  .start-banner button { padding: 10px 20px; background: var(--text); color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Space Mono', monospace;
+    min-height: 100vh;
+    padding: 0 0 80px 0;
+    overflow-x: hidden;
+  }
 
-  .stats { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
-  .stat { flex: 1; min-width: 100px; background: var(--card); border-radius: 12px; padding: 14px 16px; text-align: center; box-shadow: var(--shadow); }
-  .stat-value { font-size: 22px; font-weight: 800; }
-  .stat-label { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  /* Grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.4;
+  }
 
-  .progress-card { background: var(--card); border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; box-shadow: var(--shadow); }
-  .progress-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: #555; }
-  .progress-bar { background: #f0f0f0; border-radius: 99px; height: 10px; }
-  .progress-fill { background: linear-gradient(90deg, #4caf50, #81c784); height: 100%; border-radius: 99px; transition: width 0.4s ease; }
+  /* HEADER */
+  header {
+    background: var(--red);
+    padding: 40px 32px 32px;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 4px solid var(--white);
+  }
 
-  .toggle { display: flex; background: var(--card); border-radius: 10px; padding: 4px; margin-bottom: 20px; box-shadow: var(--shadow); }
-  .toggle-btn { flex: 1; padding: 8px 0; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; background: transparent; color: var(--muted); font-family: 'DM Sans', sans-serif; }
-  .toggle-btn.active { background: var(--text); color: #fff; }
+  header::after {
+    content: 'TRK';
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 280px;
+    position: absolute;
+    right: -20px;
+    top: -60px;
+    color: rgba(0,0,0,0.18);
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+  }
 
-  .day-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
-  .nav-btn { background: var(--card); border: none; border-radius: 8px; padding: 8px 16px; font-weight: 700; font-size: 16px; cursor: pointer; box-shadow: var(--shadow); font-family: 'DM Sans', sans-serif; }
-  .day-label { font-weight: 700; font-size: 18px; }
-  .day-date { font-size: 12px; color: var(--muted); text-align: center; margin-bottom: 14px; }
+  .day-badge {
+    display: inline-block;
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(255,255,255,0.3);
+  }
 
-  .habits { background: var(--card); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); margin-bottom: 20px; }
-  .habit { display: flex; align-items: center; gap: 14px; padding: 16px 20px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; user-select: none; }
-  .habit:last-child { border-bottom: none; }
-  .habit.done { background: var(--green-light); }
-  .checkbox { width: 24px; height: 24px; border-radius: 6px; border: 2px solid #ddd; background: transparent; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; }
-  .checkbox.checked { background: var(--green); border-color: var(--green); }
-  .checkbox.checked::after { content: '✓'; color: #fff; font-size: 14px; font-weight: 700; }
-  .habit-emoji { font-size: 18px; flex-shrink: 0; }
-  .habit-label { font-size: 15px; font-weight: 500; }
-  .habit.done .habit-label { color: var(--green); text-decoration: line-through; }
+  header h1 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(52px, 10vw, 96px);
+    line-height: 0.9;
+    letter-spacing: -2px;
+    color: var(--white);
+    position: relative;
+    z-index: 1;
+  }
 
-  .weight-row { display: flex; align-items: center; gap: 14px; padding: 14px 20px; border-top: 1px solid var(--border); background: #fff; }
-  .weight-row:last-child { border-radius: 0 0 14px 14px; }
-  .weight-inner { display: flex; align-items: center; gap: 8px; flex: 1; }
-  .weight-input { width: 85px; padding: 7px 10px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 15px; font-family: 'DM Sans', sans-serif; font-weight: 600; color: var(--text); outline: none; transition: border 0.2s; }
-  .weight-input:focus { border-color: var(--blue); }
-  .weight-unit { font-size: 14px; color: var(--muted); font-weight: 600; }
-  .weight-saved { font-size: 12px; color: var(--green); font-weight: 600; opacity: 0; transition: opacity 0.3s; margin-left: 4px; }
-  .weight-saved.show { opacity: 1; }
-  .weight-row.diet-pass { background: #f0faf1; }
-  .weight-row.diet-fail { background: #fff5f5; }
+  header h1 span {
+    display: block;
+    font-size: clamp(28px, 5vw, 48px);
+    letter-spacing: 6px;
+    color: rgba(255,255,255,0.7);
+  }
 
-  .complete-banner { background: linear-gradient(135deg, #4caf50, #66bb6a); color: #fff; border-radius: 12px; padding: 14px 20px; text-align: center; font-weight: 700; font-size: 16px; margin-bottom: 20px; }
+  .date-display {
+    margin-top: 20px;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+    position: relative;
+    z-index: 1;
+  }
 
-  .strikes-card { background: var(--card); border-radius: 12px; padding: 16px 20px; box-shadow: var(--shadow); margin-bottom: 20px; }
-  .strikes-title { font-weight: 700; margin-bottom: 12px; }
-  .strikes-row { display: flex; gap: 10px; align-items: center; }
-  .strike-btn { background: #f5f5f5; border: none; border-radius: 8px; width: 36px; height: 36px; font-size: 18px; cursor: pointer; font-weight: 700; font-family: 'DM Sans', sans-serif; }
-  .strike-dot { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-  .strike-dot.used { background: #ffebee; }
-  .strike-dot.empty { background: #f5f5f5; }
-  .strike-warning { margin-top: 10px; color: var(--red); font-weight: 600; font-size: 13px; }
+  /* PROGRESS BAR */
+  .progress-section {
+    background: var(--steel);
+    padding: 20px 32px;
+    border-bottom: 1px solid #383c47;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
 
-  .graph-btn { width: 100%; padding: 13px; background: linear-gradient(135deg, #2196f3, #42a5f5); color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif; box-shadow: var(--shadow); margin-bottom: 16px; transition: opacity 0.2s; }
-  .graph-btn:hover { opacity: 0.9; }
+  .progress-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--faded);
+    white-space: nowrap;
+  }
 
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
-  .modal { background: var(--card); border-radius: 16px; padding: 24px; width: 100%; max-width: 620px; box-shadow: 0 8px 32px rgba(0,0,0,0.18); }
-  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-  .modal-header h2 { font-family: 'DM Serif Display', serif; font-size: 22px; }
-  .modal-close { background: #f5f5f5; border: none; border-radius: 8px; width: 32px; height: 32px; font-size: 18px; cursor: pointer; }
-  .no-data { text-align: center; color: var(--muted); padding: 40px 0; font-size: 15px; }
+  .progress-bar-wrap {
+    flex: 1;
+    min-width: 200px;
+    height: 6px;
+    background: #1e2028;
+    border: 1px solid #383c47;
+    overflow: hidden;
+  }
 
-  .overview-grid-wrap { background: var(--card); border-radius: 14px; padding: 20px; box-shadow: var(--shadow); margin-bottom: 20px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 8px; }
-  .grid-day { aspect-ratio: 1; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; border: 2px solid transparent; transition: transform 0.1s; }
-  .grid-day:hover { transform: scale(1.05); }
-  .grid-day.complete { background: var(--green); }
-  .grid-day.partial { background: #fff9c4; }
-  .grid-day.empty { background: #f5f5f5; }
-  .grid-day.today { border-color: var(--blue) !important; }
-  .grid-day-num { font-size: 11px; font-weight: 700; }
-  .grid-day.complete .grid-day-num { color: #fff; }
-  .tick { font-size: 10px; color: #fff; }
-  .legend { display: flex; gap: 16px; margin-top: 16px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
-  .legend-dot { display: inline-block; border-radius: 4px; padding: 2px 8px; margin-right: 4px; }
-  .change-date-btn { background: none; border: none; color: var(--muted); font-size: 12px; cursor: pointer; text-decoration: underline; font-family: 'DM Sans', sans-serif; display: block; margin: 0 auto; }
-  .hidden { display: none; }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--red), var(--orange));
+    width: 0%;
+    transition: width 0.5s cubic-bezier(.4,0,.2,1);
+  }
+
+  .progress-count {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 22px;
+    color: var(--orange);
+    white-space: nowrap;
+    min-width: 48px;
+    text-align: right;
+  }
+
+  /* RESET BUTTON */
+  .reset-btn {
+    background: none;
+    border: 1px solid #3a3d45;
+    color: var(--faded);
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-left: auto;
+  }
+  .reset-btn:hover {
+    border-color: var(--red);
+    color: var(--red);
+  }
+
+  /* TASKS */
+  .tasks-container {
+    padding: 32px;
+    max-width: 780px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--faded);
+    padding: 24px 0 8px;
+    border-top: 1px solid #252830;
+    margin-top: 12px;
+  }
+  .section-label:first-child {
+    border-top: none;
+    padding-top: 0;
+  }
+
+  .task {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 18px 20px;
+    background: var(--steel);
+    border: 1px solid #2c2f38;
+    border-left: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    user-select: none;
+  }
+
+  .task:hover {
+    border-left-color: var(--red);
+    background: #333740;
+    transform: translateX(2px);
+  }
+
+  .task.done {
+    border-left-color: var(--orange);
+    background: #1e2028;
+    opacity: 0.75;
+  }
+
+  .task.done .task-title {
+    text-decoration: line-through;
+    color: var(--faded);
+  }
+
+  .check-box {
+    width: 22px;
+    height: 22px;
+    border: 2px solid #4a4e5a;
+    flex-shrink: 0;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .task.done .check-box {
+    background: var(--orange);
+    border-color: var(--orange);
+  }
+
+  .check-icon {
+    display: none;
+    font-size: 13px;
+    color: #000;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .task.done .check-icon { display: block; }
+
+  .task-info { flex: 1; }
+
+  .task-title {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--white);
+    line-height: 1.3;
+    margin-bottom: 4px;
+    transition: color 0.2s;
+  }
+
+  .task-desc {
+    font-size: 11px;
+    color: var(--faded);
+    letter-spacing: 0.3px;
+    line-height: 1.5;
+  }
+
+  .task-tag {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border: 1px solid #3a3d45;
+    color: var(--faded);
+    white-space: nowrap;
+    flex-shrink: 0;
+    align-self: center;
+  }
+
+  /* WATER TRACKER */
+  .water-task {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .water-task .task-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    width: 100%;
+  }
+
+  .water-cups {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding-left: 38px;
+  }
+
+  .cup {
+    width: 34px;
+    height: 40px;
+    border: 2px solid #3a3d45;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: transparent;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cup::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 0%;
+    background: linear-gradient(180deg, rgba(74, 144, 226, 0.6), rgba(74, 144, 226, 0.9));
+    transition: height 0.3s ease;
+  }
+
+  .cup.filled::before { height: 100%; }
+  .cup.filled { border-color: #4a90e2; }
+
+  .cup span {
+    position: relative;
+    z-index: 1;
+    font-size: 16px;
+    filter: grayscale(1);
+    transition: filter 0.2s;
+  }
+  .cup.filled span { filter: none; }
+
+  .water-count {
+    font-size: 11px;
+    color: #4a90e2;
+    letter-spacing: 1px;
+    padding-left: 38px;
+  }
+
+  /* COMPLETE BANNER */
+  .complete-banner {
+    display: none;
+    background: var(--red);
+    text-align: center;
+    padding: 30px 32px;
+    border-top: 3px solid var(--orange);
+    border-bottom: 3px solid var(--orange);
+    animation: pulse-banner 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-banner {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.85; }
+  }
+
+  .complete-banner h2 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(28px, 6vw, 52px);
+    letter-spacing: 4px;
+    line-height: 1;
+  }
+
+  .complete-banner p {
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.7);
+    margin-top: 8px;
+  }
+
+  /* STRIKES */
+  .strikes-section {
+    background: #1e2028;
+    padding: 14px 32px;
+    border-bottom: 1px solid #252830;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .strikes-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--faded);
+    white-space: nowrap;
+  }
+
+  .strike-count-display {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+  }
+
+  #strikeNumber {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 22px;
+    color: var(--red);
+    line-height: 1;
+    transition: transform 0.2s;
+  }
+
+  .strike-count-label {
+    font-size: 13px;
+    color: var(--red);
+    font-weight: 700;
+  }
+
+  .strikes-warning {
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--red);
+    margin-left: auto;
+    font-weight: 700;
+  }
+
+  .streak-display {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    margin-left: 8px;
+    position: relative;
+  }
+
+  .streak-display #streakCount {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 22px;
+    color: var(--orange);
+    line-height: 1;
+    transition: color 0.5s, text-shadow 0.5s, font-size 0.3s;
+  }
+
+  .streak-display-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--faded);
+    transition: color 0.5s;
+  }
+
+  /* Streak level 1: 3+ days — small warm glow */
+  .streak-l1 #streakCount {
+    color: #f5b942;
+    text-shadow: 0 0 8px rgba(245,185,66,0.5);
+  }
+
+  /* Streak level 2: 7+ days — brighter orange */
+  .streak-l2 #streakCount {
+    color: #f08020;
+    font-size: 26px;
+    text-shadow: 0 0 12px rgba(240,128,32,0.6), 0 0 24px rgba(240,128,32,0.3);
+  }
+  .streak-l2 .streak-display-label { color: #f08020; opacity: 0.8; }
+
+  /* Streak level 3: 14+ days — hot orange-red */
+  .streak-l3 #streakCount {
+    color: #ff5e1a;
+    font-size: 30px;
+    text-shadow: 0 0 14px rgba(255,94,26,0.7), 0 0 30px rgba(255,94,26,0.4);
+  }
+  .streak-l3 .streak-display-label { color: #ff5e1a; opacity: 0.9; }
+
+  /* Streak level 4: 21+ days — blazing red */
+  .streak-l4 #streakCount {
+    color: #ff2a00;
+    font-size: 34px;
+    text-shadow: 0 0 16px rgba(255,42,0,0.8), 0 0 36px rgba(255,42,0,0.5), 0 0 60px rgba(255,120,0,0.3);
+  }
+  .streak-l4 .streak-display-label { color: #ff6030; }
+
+  /* Flame underline base */
+  .streak-display::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0%;
+    height: 2px;
+    background: var(--orange);
+    transition: width 0.4s ease, background 0.5s, opacity 0.5s;
+    opacity: 0;
+  }
+  .streak-l1::after { width: 40%; opacity: 0.6; background: #f5b942; }
+  .streak-l2::after { width: 65%; opacity: 0.75; background: #f08020; }
+  .streak-l3::after { width: 85%; opacity: 0.85; background: #ff5e1a; }
+  .streak-l4::after { width: 100%; opacity: 1; background: #ff2a00; }
+
+  /* RESTART OVERLAY */
+  .restart-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(5,15,7,0.95);
+    z-index: 1000;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 32px;
+  }
+
+  .restart-overlay.show { display: flex; }
+
+  .restart-overlay h2 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(40px, 8vw, 80px);
+    color: var(--red);
+    letter-spacing: 2px;
+    line-height: 1;
+    margin-bottom: 16px;
+  }
+
+  .restart-overlay p {
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--faded);
+    margin-bottom: 36px;
+    max-width: 360px;
+    line-height: 1.8;
+  }
+
+  .restart-overlay button {
+    background: var(--red);
+    border: none;
+    color: #fff;
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 18px;
+    letter-spacing: 3px;
+    padding: 16px 40px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .restart-overlay button:hover { opacity: 0.85; }
+
+  /* TABS */
+  .tab-nav {
+    background: #1e2028;
+    display: flex;
+    border-bottom: 1px solid #252830;
+  }
+
+  .tab-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: var(--faded);
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 14px 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tab-btn.active {
+    color: var(--white);
+    border-bottom-color: var(--red);
+  }
+
+  .tab-btn:hover:not(.active) {
+    color: var(--white);
+  }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* HISTORY */
+  .history-container {
+    padding: 32px;
+    max-width: 780px;
+    margin: 0 auto;
+  }
+
+  .history-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .history-card {
+    background: var(--steel);
+    border: 1px solid #2c2f38;
+    border-top: 3px solid #383c47;
+    padding: 10px 8px 8px;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s;
+    text-align: center;
+    position: relative;
+  }
+
+  .history-card:hover { transform: translateY(-2px); }
+
+  .history-card.complete {
+    border-top-color: #4caf7d;
+    background: #0e1f18;
+  }
+
+  .history-card.struck {
+    border-top-color: #e05c2a;
+    background: #1f1008;
+  }
+
+  .history-card.today-card {
+    border: 2px solid var(--orange) !important;
+    border-top: 4px solid var(--orange) !important;
+    background: #1f1a0a;
+    box-shadow: 0 0 14px rgba(245,185,66,0.3);
+  }
+
+  .history-card.future {
+    border-top-color: #383c47;
+    opacity: 0.5;
+  }
+
+  .history-card.future:hover { transform: translateY(-2px); opacity: 0.8; }
+
+  .hcard-num {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 22px;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .history-card.complete .hcard-num { color: #4caf7d; }
+  .history-card.struck .hcard-num { color: #e05c2a; }
+  .history-card.today-card .hcard-num { color: var(--red); }
+  .history-card.future .hcard-num { color: #3a3d45; }
+  .history-card.incomplete .hcard-num { color: var(--faded); }
+
+  .hcard-date {
+    font-size: 8px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--faded);
+    line-height: 1.3;
+  }
+
+  .hcard-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin: 5px auto 0;
+  }
+
+  .history-card.complete .hcard-dot { background: #4caf7d; }
+  .history-card.struck .hcard-dot { background: #e05c2a; }
+  .history-card.today-card .hcard-dot { background: var(--red); }
+  .history-card.future .hcard-dot { background: #383c47; }
+  .history-card.incomplete .hcard-dot { background: #4a4e5a; }
+
+  /* Tooltip */
+  .hcard-tooltip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1e2028;
+    border: 1px solid #3a3d45;
+    padding: 8px 12px;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    color: var(--white);
+    white-space: nowrap;
+    z-index: 100;
+    line-height: 1.6;
+    text-align: left;
+    pointer-events: none;
+  }
+
+  .history-card:not(.future):hover .hcard-tooltip { display: block; }
+  .history-card:not(.future):active .hcard-tooltip { display: block; }
+
+  .history-empty {
+    font-size: 11px;
+    color: var(--faded);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 60px 0;
+  }
+
+  .history-summary {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+
+  .hsummary-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .hsummary-val {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 32px;
+    line-height: 1;
+  }
+
+  .hsummary-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--faded);
+  }
+
+  /* MILESTONE CARD */
+  .history-card.milestone {
+    border-top-color: #f0c040;
+    background: #242010;
+    box-shadow: 0 0 12px rgba(201,168,76,0.15);
+  }
+  .history-card.milestone .hcard-num { color: #f0c040; }
+  .history-card.milestone .hcard-dot { background: #f0c040; }
+  .hcard-trophy { font-size: 11px; margin-top: 2px; }
+
+  /* STREAK BADGES */
+  .streak-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+    margin-bottom: 8px;
+  }
+  .streak-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border: 1px solid #f0c040;
+    color: #f0c040;
+    padding: 4px 10px;
+    background: #242010;
+  }
+
+  /* REWARDS BAR */
+  .rewards-bar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 20px 0 8px;
+    padding: 16px;
+    border: 1px solid #252830;
+    background: #1e2028;
+  }
+  .rewards-bar-title {
+    width: 100%;
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #4a4e5a;
+    margin-bottom: 8px;
+  }
+  .reward-chip {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 7px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid #f0c040;
+    color: #f0c040;
+    background: #242010;
+  }
+  .reward-chip:hover { background: #f0c040; color: #000; }
+  .reward-chip.used { border-color: #383c47; color: #3a3d45; background: none; cursor: default; text-decoration: line-through; }
+  .reward-chip.rest-active { border-color: #f5b942; color: #f5b942; background: #1e1a0a; }
+
+  /* BACKDATE MODAL */
+  .backdate-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(5,15,7,0.95);
+    z-index: 1000;
+    overflow-y: auto;
+    padding: 32px 16px;
+  }
+
+  .backdate-overlay.show { display: block; }
+
+  .backdate-modal {
+    max-width: 520px;
+    margin: 0 auto;
+    background: #1e2028;
+    border: 1px solid #383c47;
+    border-top: 4px solid var(--red);
+  }
+
+  .backdate-header {
+    padding: 24px 28px 16px;
+    border-bottom: 1px solid #252830;
+  }
+
+  .backdate-header h3 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 28px;
+    letter-spacing: 2px;
+    color: var(--white);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .backdate-header p {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--faded);
+  }
+
+  .backdate-body {
+    padding: 20px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .backdate-task {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: var(--steel);
+    border: 1px solid #2c2f38;
+    border-left: 3px solid transparent;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.15s;
+  }
+
+  .backdate-task:hover { border-left-color: var(--red); background: #333740; }
+  .backdate-task.done { border-left-color: var(--orange); background: #1e2028; opacity: 0.75; }
+  .backdate-task.done .bt-title { text-decoration: line-through; color: var(--faded); }
+
+  .bt-check {
+    width: 20px; height: 20px;
+    border: 2px solid #4a4e5a;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: #000;
+    transition: all 0.15s;
+  }
+
+  .backdate-task.done .bt-check { background: var(--orange); border-color: var(--orange); }
+
+  .bt-title { font-size: 13px; font-weight: 700; flex: 1; transition: all 0.15s; }
+
+  .backdate-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 4px;
+  }
+
+  .backdate-input-wrap {
+    background: var(--steel);
+    border: 1px solid #2c2f38;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .backdate-input-wrap label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--faded);
+  }
+
+  .backdate-input-wrap input {
+    background: #1e2028;
+    border: 1px solid #3a3d45;
+    color: var(--white);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    padding: 6px 10px;
+    outline: none;
+    width: 100%;
+  }
+
+  .backdate-footer {
+    padding: 16px 28px 24px;
+    display: flex;
+    gap: 10px;
+  }
+
+  .backdate-submit {
+    flex: 1;
+    background: var(--red);
+    border: none;
+    color: #fff;
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 15px;
+    letter-spacing: 3px;
+    padding: 14px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .backdate-submit:hover { opacity: 0.88; }
+
+  .backdate-cancel {
+    background: none;
+    border: 1px solid #3a3d45;
+    color: var(--faded);
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    padding: 14px 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .backdate-cancel:hover { border-color: var(--white); color: var(--white); }
+
+  /* BACKDATE modal */
+  /* BACKDATE OVERLAY */
+  .backdate-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(5,15,7,0.95);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .backdate-overlay.show { display: flex; }
+  .backdate-modal {
+    background: #1e2028;
+    border: 1px solid #383c47;
+    border-top: 3px solid var(--red);
+    padding: 28px 28px 24px;
+    width: 100%;
+    max-width: 420px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .backdate-modal h3 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 22px;
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+  }
+  .bd-date { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--faded); margin-bottom: 20px; }
+  .bd-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #252830; }
+  .bd-row:last-of-type { border-bottom: none; }
+  .bd-label { font-size: 12px; letter-spacing: 0.5px; color: var(--white); }
+  .bd-sublabel { font-size: 9px; color: var(--faded); letter-spacing: 1px; margin-top: 2px; }
+  .bd-check { width: 26px; height: 26px; border: 2px solid #4a4e5a; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; flex-shrink: 0; }
+  .bd-check.on { background: var(--orange); border-color: var(--orange); }
+  .bd-check.on::after { content: '✓'; color: #000; font-size: 13px; font-weight: 700; }
+  .bd-input { background: #1e2028; border: 1px solid #3a3d45; color: var(--white); font-family: 'Space Mono', monospace; font-size: 13px; padding: 7px 10px; width: 100px; outline: none; text-align: right; }
+  .bd-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .bd-submit { flex: 1; background: var(--red); border: none; color: #fff; font-family: 'Black Han Sans', sans-serif; font-size: 15px; letter-spacing: 3px; padding: 14px; cursor: pointer; transition: opacity 0.2s; }
+  .bd-submit:hover { opacity: 0.88; }
+  .bd-cancel { background: none; border: 1px solid #3a3d45; color: var(--faded); font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 2px; padding: 14px 18px; cursor: pointer; transition: all 0.2s; }
+  .bd-cancel:hover { border-color: var(--white); color: var(--white); }
+
+  .submit-wrap {
+    padding: 24px 32px 8px;
+    max-width: 780px;
+    margin: 0 auto;
+  }
+
+  .submit-btn {
+    width: 100%;
+    background: var(--red);
+    border: none;
+    color: #fff;
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 18px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    padding: 18px;
+    cursor: pointer;
+    transition: opacity 0.2s, background 0.2s;
+  }
+
+  .submit-btn:hover { opacity: 0.88; }
+
+  .submit-btn:disabled {
+    background: #252830;
+    color: #4a4e5a;
+    cursor: not-allowed;
+    opacity: 1;
+  }
+
+  .submit-btn.submitted {
+    background: #22201a;
+    color: #f5b942;
+    cursor: default;
+  }
+
+  /* CHECK animation */
+  @keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+
+  .task.pop {
+    animation: pop 0.25s ease;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    body { padding: 0 0 100px 0; }
+
+    /* Header */
+    header { padding: 24px 16px 20px; }
+    header h1 { font-size: 42px; }
+    header::after { font-size: 160px; right: -10px; top: -30px; }
+    .day-badge { font-size: 8px; letter-spacing: 3px; margin-bottom: 6px; }
+    .date-display { font-size: 10px; letter-spacing: 1px; margin-top: 6px; }
+
+    /* Progress */
+    .progress-section { padding: 14px 16px; }
+    .progress-info { font-size: 10px; }
+
+    /* Strikes */
+    .strikes-section { padding: 10px 16px; }
+    .strike-pip { width: 28px; height: 28px; font-size: 11px; }
+
+    /* Tabs */
+    .tab-nav { padding: 0 16px; gap: 0; }
+    .tab-btn { font-size: 10px; letter-spacing: 2px; padding: 12px 20px; }
+
+    /* Tasks */
+    .tasks-container { padding: 16px 12px; gap: 10px; }
+    .section-label { font-size: 9px; letter-spacing: 3px; padding: 18px 0 6px; margin-top: 6px; }
+
+    .task { padding: 14px 14px; gap: 12px; }
+    .task-title { font-size: 13px; }
+    .task-desc { font-size: 10px; }
+    .task-tag { font-size: 8px; letter-spacing: 1px; padding: 2px 6px; }
+
+    /* Accountability 2-col grid → single col on small screens */
+    .accountability-grid { grid-template-columns: 1fr !important; }
+
+    /* Water/input tasks */
+    .water-task { padding: 14px; }
+    .water-task .task-header { gap: 12px; }
+
+    /* Number inputs fill width on mobile */
+    .bd-input, #weightInput, #kcalInput {
+      width: 90px !important;
+      font-size: 14px !important;
+      padding: 10px 10px !important;
+    }
+
+    /* Submit button */
+    .submit-wrap { padding: 16px 12px 8px; }
+    .submit-btn { font-size: 15px; letter-spacing: 3px; padding: 16px; }
+
+    /* Complete banner */
+    .complete-banner { padding: 20px 16px; }
+    .complete-banner h2 { font-size: 22px; }
+
+    /* Rules card */
+    .rules-card { padding: 14px; font-size: 10px; }
+
+    /* History container */
+    .history-container { padding: 16px 12px; }
+
+    /* Summary stats — 2x2 grid on mobile */
+    .history-summary { gap: 0; display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #252830; margin-bottom: 20px; }
+    .hsummary-item { padding: 14px 12px; border-right: 1px solid #252830; border-bottom: 1px solid #252830; }
+    .hsummary-item:nth-child(even) { border-right: none; }
+    .hsummary-item:nth-last-child(-n+2):not(.streak-badges) { border-bottom: none; }
+    .hsummary-val { font-size: 26px; }
+    .hsummary-label { font-size: 8px; letter-spacing: 1px; }
+
+    /* Streak badges */
+    .streak-badges { margin-top: 0; padding: 10px 12px; border-top: 1px solid #252830; width: 100%; grid-column: 1 / -1; }
+    .streak-badge { font-size: 8px; padding: 3px 8px; }
+
+    /* History grid — tighter on mobile */
+    .history-grid { gap: 4px; margin-top: 6px; }
+    .history-card { padding: 7px 4px 6px; border-top-width: 2px; }
+    .hcard-num { font-size: 15px; margin-bottom: 2px; }
+    .hcard-date { font-size: 6px; letter-spacing: 0; }
+    .hcard-dot { width: 4px; height: 4px; margin-top: 3px; }
+    .hcard-trophy { font-size: 9px; }
+
+    /* Tooltip — show on tap (touch devices show :active) */
+    .hcard-tooltip { font-size: 9px; padding: 6px 10px; white-space: nowrap; }
+
+    /* Graph button */
+    .history-container > div > button { font-size: 8px; padding: 6px 10px; letter-spacing: 1px; }
+
+    /* Rewards bar */
+    .rewards-bar { padding: 12px; gap: 8px; margin: 14px 0 6px; }
+    .reward-chip { font-size: 8px; padding: 8px 12px; width: 100%; text-align: center; }
+
+    /* Backdate modal */
+    .backdate-modal { padding: 20px 16px 16px; }
+    .backdate-modal h3 { font-size: 18px; }
+    .bd-date { font-size: 9px; margin-bottom: 14px; }
+    .bd-row { padding: 10px 0; }
+    .bd-label { font-size: 11px; }
+    .bd-input { width: 85px; font-size: 14px; padding: 8px; }
+    .bd-actions { margin-top: 16px; }
+    .bd-submit { font-size: 14px; letter-spacing: 2px; padding: 14px; }
+    .bd-cancel { font-size: 9px; padding: 14px 12px; }
+
+    /* Graph overlay */
+    #graphOverlay > div { padding: 20px 16px; }
+    #graphOverlay canvas { height: 240px !important; }
+  }
 </style>
 </head>
 <body>
-<div class="container">
-  <div class="header">
-    <h1>75 Medium 🔥</h1>
-    <p>Consistency over perfection</p>
+
+<header>
+  <div class="day-badge">Razvan's Checklist</div>
+  <h1>TRACKER</h1>
+  <div class="date-display" id="dateDisplay"></div>
+</header>
+
+<div class="progress-section">
+  <div class="progress-label">Today's Progress</div>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progressBar"></div>
+  </div>
+  <div class="progress-count" id="progressCount">0/6</div>
+</div>
+
+<div class="strikes-section">
+  <div class="strikes-label">Strikes</div>
+  <div class="strike-count-display" id="strikeCountDisplay">
+    <span id="strikeNumber">0</span>
+  </div>
+  <div class="streak-display" id="streakDisplay">
+    <span class="streak-display-label">Day Streak</span>
+    <span id="streakCount">0</span>
+  </div>
+  <div class="strikes-warning" id="strikesWarning"></div>
+</div>
+
+<!-- Restart overlay -->
+
+<div class="tab-nav">
+  <button class="tab-btn active" id="tab-today" onclick="switchTab('today')">Today</button>
+  <button class="tab-btn" id="tab-history" onclick="switchTab('history')">History</button>
+</div>
+
+<div id="panel-today" class="tab-panel active">
+
+<div class="complete-banner" id="completeBanner">
+  <h2>🔥 DAY COMPLETE</h2>
+  <p>No excuses. No compromises. Keep going.</p>
+</div>
+
+<div id="restDayBanner" style="display:none; background:#1e1a0a; border:1px solid #f5b942; border-left:4px solid #f5b942;
+  padding:14px 20px; max-width:780px; margin:0 auto 0; font-size:11px; letter-spacing:1px; color:#f5b942;">
+  🌿 REST DAY ACTIVE — Steps are optional today. Reward used.
+</div>
+
+<div class="tasks-container">
+
+  <div class="section-label">— Fitness</div>
+
+  <div class="task" id="task-workout1" onclick="toggleTask('workout1')">
+    <div class="check-box"><span class="check-icon">✓</span></div>
+    <div class="task-info">
+      <div class="task-title">6,000 Steps</div>
+      <div class="task-desc">Hit 6,000 steps throughout the day. Use a phone, watch, or pedometer to track.</div>
+    </div>
+    <div class="task-tag" id="steps-tag">Mandatory</div>
   </div>
 
-  <!-- Start date setup -->
-  <div class="start-banner" id="start-banner">
-    <h3>When did you start?</h3>
-    <p>Enter your start date and the tracker will automatically know which day you're on every time you open it.</p>
-    <div class="start-row">
-      <input type="date" id="start-date-input">
-      <button onclick="setStartDate()">Let's go 🚀</button>
+  <div class="task" id="task-workout2" onclick="toggleTask('workout2')">
+    <div class="check-box"><span class="check-icon">✓</span></div>
+    <div class="task-info">
+      <div class="task-title">Workout — 45 Minutes</div>
+      <div class="task-desc">At least 45 minutes of physical activity. No exceptions.</div>
     </div>
+    <div class="task-tag" style="border-color:#4a4e5a; color:#5a5e6a;">Optional</div>
   </div>
 
-  <!-- Main tracker -->
-  <div id="main-tracker" class="hidden">
-    <div class="stats">
-      <div class="stat"><div class="stat-value" id="stat-done" style="color:#4caf50">0/75</div><div class="stat-label">Days Done</div></div>
-      <div class="stat"><div class="stat-value" id="stat-day" style="color:#2196f3">1</div><div class="stat-label">Today's Day</div></div>
-      <div class="stat"><div class="stat-value" id="stat-strikes" style="color:#ff9800">0/3</div><div class="stat-label">Strikes</div></div>
-    </div>
+  <div class="section-label">— Accountability</div>
 
-    <div class="progress-card">
-      <div class="progress-header"><span>Overall Progress</span><span id="progress-pct">0%</span></div>
-      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
-    </div>
+  <div style="display:flex; flex-direction:column; gap:12px;">
 
-    <div class="toggle">
-      <button class="toggle-btn active" id="btn-today" onclick="switchView('today')">📅 Today</button>
-      <button class="toggle-btn" id="btn-overview" onclick="switchView('overview')">📊 All Days</button>
-    </div>
-
-    <!-- TODAY VIEW -->
-    <div id="view-today">
-      <div class="day-nav">
-        <button class="nav-btn" onclick="changeDay(-1)">‹</button>
-        <span class="day-label" id="day-label">Day 1</span>
-        <button class="nav-btn" onclick="changeDay(1)">›</button>
-      </div>
-      <div class="day-date" id="day-date"></div>
-
-      <div class="habits" id="habits-list"></div>
-
-      <div class="complete-banner hidden" id="complete-banner">🎉 Day complete!</div>
-
-      <div class="strikes-card">
-        <div class="strikes-title">⚡ Strike Tracker</div>
-        <div class="strikes-row">
-          <button class="strike-btn" onclick="changeStrike(-1)">−</button>
-          <div id="strike-dots" style="display:flex;gap:8px"></div>
-          <button class="strike-btn" onclick="changeStrike(1)">+</button>
+    <!-- Kcal Tracker -->
+    <div class="task water-task" id="task-kcal-container" style="cursor:default;">
+      <div class="task-header">
+        <div class="check-box" id="kcal-check"><span class="check-icon">✓</span></div>
+        <div class="task-info">
+          <div class="task-title" id="kcal-title">Daily Calories</div>
+          <div class="task-desc">Must stay at or under 1,750 kcal.</div>
         </div>
-        <div class="strike-warning hidden" id="strike-warning">3 strikes — time to restart! You've got this 💪</div>
+        <div class="task-tag">Mandatory</div>
       </div>
-
-      <button class="graph-btn" onclick="showGraph()">📈 View Weight Progress Graph</button>
-      <button class="change-date-btn" onclick="resetStartDate()">Change start date</button>
+      <div style="padding-left:38px; display:flex; align-items:center; gap:10px; margin-top:8px;">
+        <input type="number" id="kcalInput" placeholder="" step="1" min="0" max="9999"
+          style="background:#1e2028; border:1px solid #3a3d45; color:var(--white); font-family:'Space Mono',monospace;
+                 font-size:13px; padding:8px 12px; width:110px; outline:none; letter-spacing:1px;"
+          oninput="checkKcal()" />
+        <span style="font-size:11px; color:var(--faded); letter-spacing:2px;">KCAL</span>
+      </div>
+      <div style="padding-left:38px; font-size:11px; letter-spacing:1px; margin-top:6px;" id="kcalStatus"></div>
     </div>
 
-    <!-- OVERVIEW VIEW -->
-    <div id="view-overview" class="hidden">
-      <div class="overview-grid-wrap">
-        <div class="grid" id="overview-grid"></div>
-        <div class="legend">
-          <span><span class="legend-dot" style="background:#4caf50;color:#fff">✓</span> Complete</span>
-          <span><span class="legend-dot" style="background:#fff9c4;border:1px solid #ddd">~</span> Partial</span>
-          <span><span class="legend-dot" style="background:#f5f5f5;border:1px solid #ddd">&nbsp;&nbsp;</span> Not started</span>
+    <!-- Weigh-in Task -->
+    <div class="task water-task" id="task-weigh-container" style="cursor:default;">
+      <div class="task-header">
+        <div class="check-box" id="weigh-check"><span class="check-icon">✓</span></div>
+        <div class="task-info">
+          <div class="task-title" id="weigh-title">Weigh Yourself</div>
+          <div class="task-desc">Log your morning weight in kg.</div>
         </div>
+        <div class="task-tag">Mandatory</div>
       </div>
-      <button class="graph-btn" onclick="showGraph()">📈 View Weight Progress Graph</button>
+      <div style="padding-left:38px; display:flex; align-items:center; gap:10px; margin-top:8px;">
+        <input type="number" id="weightInput" placeholder="" step="0.1" min="20" max="300"
+          style="background:#1e2028; border:1px solid #3a3d45; color:var(--white); font-family:'Space Mono',monospace;
+                 font-size:13px; padding:8px 12px; width:110px; outline:none; letter-spacing:1px;"
+          oninput="checkWeight()" />
+        <span style="font-size:11px; color:var(--faded); letter-spacing:2px;">KG</span>
+      </div>
+      <div style="padding-left:38px; font-size:11px; letter-spacing:1px; margin-top:6px;" id="weighHistory"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<div class="submit-wrap">
+  <button class="submit-btn" id="submitBtn" onclick="submitDay()">Submit Day</button>
+</div>
+
+</div><!-- end panel-today -->
+
+<div id="panel-history" class="tab-panel">
+  <div class="history-container">
+    <div class="history-summary" id="historySummary"></div>
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+      <div class="section-label" style="border-top:none; padding-top:0; margin:0;">— Day Log</div>
+      <button onclick="showGraph()" style="background:none; border:1px solid #3a3d45; color:var(--faded);
+        font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase;
+        padding:7px 14px; cursor:pointer; transition:all 0.2s;"
+        onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'"
+        onmouseout="this.style.borderColor='#3a3d45';this.style.color='var(--faded)'">
+        ▲ View Graph
+      </button>
+    </div>
+    <div class="history-grid" id="historyGrid"></div>
+    <div id="rewardsBar" style="display:none;" class="rewards-bar">
+      <div class="rewards-bar-title">⭐ Rewards</div>
+      <div id="rewardsList"></div>
+    </div>
+    <div style="margin-top:40px; padding-top:24px; border-top:1px solid #252830; text-align:center;">
+      <button onclick="showWipeConfirm()" style="background:none; border:1px solid #3a1a1a; color:#553333;
+        font-family:'Space Mono',monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase;
+        padding:10px 24px; cursor:pointer; transition:all 0.2s;"
+        onmouseover="this.style.borderColor='#2d6a4f';this.style.color='#2d6a4f'"
+        onmouseout="this.style.borderColor='#3a1a1a';this.style.color='#553333'">
+        ☠ Wipe All Data
+      </button>
     </div>
   </div>
 </div>
 
-<!-- Weight Graph Modal -->
-<div class="modal-overlay hidden" id="modal-overlay" onclick="closeModalBg(event)">
-  <div class="modal">
-    <div class="modal-header">
-      <h2>📊 Weight & Calories</h2>
-      <button class="modal-close" onclick="closeModal()">✕</button>
+<!-- Backdate overlay -->
+<div class="backdate-overlay" id="backdateOverlay">
+  <div class="backdate-modal">
+    <h3 id="bdModalTitle">Log Missed Day</h3>
+    <div class="bd-date" id="bdDateLabel"></div>
+
+    <div class="bd-row">
+      <div>
+        <div class="bd-label">6,000 Steps</div>
+        <div class="bd-sublabel">Mandatory</div>
+      </div>
+      <div class="bd-check" id="bd-workout1" onclick="bdToggle('workout1')"></div>
     </div>
-    <div id="graph-container"><canvas id="weight-chart"></canvas></div>
-    <div class="no-data hidden" id="no-data">No data yet. Start logging your weight and calories each day!</div>
+    <div class="bd-row">
+      <div>
+        <div class="bd-label">Workout — 45 min</div>
+        <div class="bd-sublabel">Optional</div>
+      </div>
+      <div class="bd-check" id="bd-workout2" onclick="bdToggle('workout2')"></div>
+    </div>
+    <div class="bd-row">
+      <div>
+        <div class="bd-label">Weight</div>
+        <div class="bd-sublabel">KG — Mandatory</div>
+      </div>
+      <input class="bd-input" id="bd-weight" type="number" step="0.1" min="20" max="300" placeholder="kg" />
+    </div>
+    <div class="bd-row">
+      <div>
+        <div class="bd-label">Calories</div>
+        <div class="bd-sublabel">≤ 1750 kcal — Mandatory</div>
+      </div>
+      <input class="bd-input" id="bd-kcal" type="number" step="1" min="0" max="9999" placeholder="kcal" />
+    </div>
+
+    <div class="bd-actions">
+      <button class="bd-cancel" onclick="closeBackdate()">↩ Cancel</button>
+      <button class="bd-submit" onclick="saveBackdate()">Save Day</button>
+    </div>
+  </div>
+</div>
+
+<!-- Graph overlay -->
+<div class="restart-overlay" id="graphOverlay" style="padding:24px;">
+  <div style="background:#1e2028; border:1px solid #383c47; border-top:3px solid var(--orange);
+    padding:28px; width:100%; max-width:680px; position:relative;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+      <div>
+        <div style="font-family:'Black Han Sans',sans-serif; font-size:20px; letter-spacing:2px;">Progress Graph</div>
+        <div style="font-size:9px; color:var(--faded); letter-spacing:2px; text-transform:uppercase; margin-top:3px;">Weight over time</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--faded);">
+          <div id="kcalToggleBox" onclick="toggleKcalLine()" style="width:18px; height:18px; border:2px solid #4a4e5a; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.15s; flex-shrink:0;"></div>
+          Show Kcal
+        </label>
+        <button onclick="document.getElementById('graphOverlay').classList.remove('show')"
+          style="background:none; border:1px solid #3a3d45; color:var(--faded); font-family:'Space Mono',monospace;
+          font-size:10px; letter-spacing:2px; padding:6px 14px; cursor:pointer;">✕ Close</button>
+      </div>
+    </div>
+    <div style="position:relative; height:320px;">
+      <canvas id="progressChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Wipe confirmation overlay -->
+<div class="restart-overlay" id="wipeOverlay">
+  <h2 style="color:var(--red);">WIPE ALL DATA?</h2>
+  <p>This will permanently delete all<br>history, strikes,<br>and today's progress.<br><br>There is no undo.</p>
+  <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+    <button onclick="confirmWipe()" style="background:var(--red);">☠ YES, WIPE EVERYTHING</button>
+    <button onclick="document.getElementById('wipeOverlay').classList.remove('show')"
+      style="background:#252830; border:1px solid #3a3d45;">↩ Cancel</button>
   </div>
 </div>
 
 <script>
-const HABITS = [
-  { id: "workout", label: "45-min Workout", emoji: "🏋️" },
-  { id: "water",   label: "2L Water",        emoji: "💧" },
-  { id: "read",    label: "Read/Work on editing skills", emoji: "📖" },
-  { id: "photo",   label: "Progress Photo", emoji: "📸" },
-];
+  const MANDATORY_TASKS = ['workout1'];
+  const OPTIONAL_TASKS = ['workout2'];
+  const TOTAL = 3;
+  const KCAL_LIMIT = 1750;
+  let weightDone = false;
+  let kcalDone = false;
+  let kcalFail = false;
+  let strikes = 0;
+  let todayStruck = false;
+  let daySubmitted = false;
 
-let state = JSON.parse(localStorage.getItem("75medium_v2") || "null") || {
-  checked: {}, strikes: 0, weights: {}, calories: {}, startDate: null, viewDay: null
-};
-if (!state.calories) state.calories = {};
+  // REWARD SYSTEM
+  const MILESTONE_WEEKS = [3, 6, 9, 12];
 
-let chartInstance = null;
-
-function save() { localStorage.setItem("75medium_v2", JSON.stringify(state)); }
-
-function getTodayStr() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
-
-function getDayNumber(dateStr) {
-  const start = new Date(state.startDate + 'T00:00:00');
-  const target = new Date(dateStr + 'T00:00:00');
-  const diff = Math.floor((target - start) / 86400000) + 1;
-  return Math.max(1, Math.min(75, diff));
-}
-
-function getDateForDay(dayNum) {
-  const start = new Date(state.startDate + 'T00:00:00');
-  start.setDate(start.getDate() + dayNum - 1);
-  return start.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
-}
-
-function getTodayDay() { return getDayNumber(getTodayStr()); }
-
-function setStartDate() {
-  const val = document.getElementById('start-date-input').value;
-  if (!val) { alert('Please pick a date!'); return; }
-  state.startDate = val;
-  state.viewDay = getTodayDay();
-  save();
-  initTracker();
-}
-
-function resetStartDate() {
-  if (!confirm('Change start date? Your habit and weight data will be kept.')) return;
-  state.startDate = null;
-  state.viewDay = null;
-  save();
-  document.getElementById('start-banner').classList.remove('hidden');
-  document.getElementById('main-tracker').classList.add('hidden');
-}
-
-function initTracker() {
-  document.getElementById('start-banner').classList.add('hidden');
-  document.getElementById('main-tracker').classList.remove('hidden');
-  if (!state.viewDay) state.viewDay = getTodayDay();
-  render();
-}
-
-function isChecked(day, hid) { return !!state.checked[`${day}-${hid}`]; }
-function dietPassed(day) { const c = state.calories[day]; return c !== undefined && c !== "" && parseFloat(c) <= 1750; }
-function dayComplete(day) { return HABITS.every(h => isChecked(day, h.id)) && dietPassed(day); }
-function dayPartial(day) { return (HABITS.some(h => isChecked(day, h.id)) || state.calories[day]) && !dayComplete(day); }
-function completedDays() { return Array.from({length:75},(_,i)=>i+1).filter(dayComplete).length; }
-
-function toggle(day, hid) {
-  state.checked[`${day}-${hid}`] = !state.checked[`${day}-${hid}`];
-  save(); render();
-}
-
-function changeDay(d) {
-  state.viewDay = Math.max(1, Math.min(75, state.viewDay + d));
-  save(); render();
-}
-
-function changeStrike(d) {
-  state.strikes = Math.max(0, Math.min(3, state.strikes + d));
-  save(); render();
-}
-
-function saveWeight(day, val) {
-  const num = parseFloat(val);
-  if (!isNaN(num) && num > 0) { state.weights[day] = num; }
-  else if (val === '') { delete state.weights[day]; }
-  save();
-  const badge = document.getElementById('weight-saved');
-  if (badge) { badge.classList.add('show'); setTimeout(() => badge.classList.remove('show'), 1500); }
-}
-
-function saveCalories(day, val) {
-  const num = parseInt(val);
-  if (!isNaN(num) && num >= 0) { state.calories[day] = num; }
-  else if (val === "") { delete state.calories[day]; }
-  save(); render();
-}
-
-function render() {
-  const todayDay = getTodayDay();
-  const done = completedDays();
-  const pct = Math.round((done / 75) * 100);
-
-  document.getElementById('stat-done').textContent = `${done}/75`;
-  document.getElementById('stat-day').textContent = todayDay <= 75 ? todayDay : '🎉';
-  document.getElementById('stat-strikes').textContent = `${state.strikes}/3`;
-  document.getElementById('stat-strikes').style.color = state.strikes === 3 ? '#f44336' : '#ff9800';
-  document.getElementById('progress-pct').textContent = `${pct}%`;
-  document.getElementById('progress-fill').style.width = `${pct}%`;
-
-  const vd = state.viewDay;
-  document.getElementById('day-label').textContent = `Day ${vd}`;
-  document.getElementById('day-date').textContent = getDateForDay(vd);
-
-  // Render habits
-  const list = document.getElementById('habits-list');
-  list.innerHTML = '';
-  HABITS.forEach(h => {
-    const done = isChecked(vd, h.id);
-    const div = document.createElement('div');
-    div.className = 'habit' + (done ? ' done' : '');
-    div.innerHTML = `
-      <div class="checkbox ${done ? 'checked' : ''}"></div>
-      <span class="habit-emoji">${h.emoji}</span>
-      <span class="habit-label">${h.label}</span>`;
-    div.onclick = () => toggle(vd, h.id);
-    list.appendChild(div);
-  });
-
-  // Diet / Calories row
-  const dietPassed = state.calories[vd] !== undefined && state.calories[vd] !== '' && parseFloat(state.calories[vd]) <= 1750;
-  const dietFailed = state.calories[vd] !== undefined && state.calories[vd] !== '' && parseFloat(state.calories[vd]) > 1750;
-  const currentCal = state.calories[vd] !== undefined ? state.calories[vd] : '';
-  const dr = document.createElement('div');
-  dr.className = 'weight-row' + (dietPassed ? ' diet-pass' : dietFailed ? ' diet-fail' : '');
-  dr.innerHTML = `
-    <span class="habit-emoji">🥗</span>
-    <div class="weight-inner">
-      <span style="font-size:15px;font-weight:500;flex:1">Calories</span>
-      <input class="weight-input" id="cal-input" type="number" step="1" min="0" max="9999"
-        placeholder="—" value="${currentCal}" style="border-color:${dietFailed ? '#f44336' : dietPassed ? '#4caf50' : '#ddd'}" />
-      <span class="weight-unit">kcal</span>
-      <span id="cal-status" style="font-size:12px;font-weight:700;margin-left:4px;color:${dietFailed ? '#f44336' : dietPassed ? '#4caf50' : 'transparent'}">
-        ${dietFailed ? '✗ Over limit' : dietPassed ? '✓ Goal met' : '·'}
-      </span>
-    </div>`;
-  list.appendChild(dr);
-  document.getElementById('cal-input').addEventListener('change', e => saveCalories(vd, e.target.value));
-  document.getElementById('cal-input').addEventListener('blur',   e => saveCalories(vd, e.target.value));
-
-  // Weight row
-  const wr = document.createElement('div');
-  wr.className = 'weight-row';
-  const currentWeight = state.weights[vd] !== undefined ? state.weights[vd] : '';
-  wr.innerHTML = `
-    <span class="habit-emoji">⚖️</span>
-    <div class="weight-inner">
-      <span style="font-size:15px;font-weight:500;flex:1">Weight</span>
-      <input class="weight-input" id="weight-input" type="number" step="0.1" min="1" max="500"
-        placeholder="—" value="${currentWeight}" />
-      <span class="weight-unit">kg</span>
-      <span class="weight-saved" id="weight-saved">Saved ✓</span>
-    </div>`;
-  list.appendChild(wr);
-  document.getElementById('weight-input').addEventListener('change', e => saveWeight(vd, e.target.value));
-  document.getElementById('weight-input').addEventListener('blur',   e => saveWeight(vd, e.target.value));
-
-  // Complete banner
-  const banner = document.getElementById('complete-banner');
-  banner.classList.toggle('hidden', !dayComplete(vd));
-  banner.textContent = `🎉 Day ${vd} Complete!`;
-
-  // Strikes
-  const dots = document.getElementById('strike-dots');
-  dots.innerHTML = '';
-  for (let i = 0; i < 3; i++) {
-    const d = document.createElement('div');
-    d.className = 'strike-dot ' + (i < state.strikes ? 'used' : 'empty');
-    d.textContent = i < state.strikes ? '❌' : '○';
-    dots.appendChild(d);
+  function getMilestoneDates(day1) {
+    // For each milestone week, find the Sunday that ends that week in the grid.
+    // The grid starts on the Monday on or before day1.
+    // Week 1 ends on the first Sunday >= day1's Monday + 6 days, etc.
+    const dow1 = (day1.getDay() + 6) % 7; // 0=Mon ... 6=Sun
+    const gridStart = new Date(day1);
+    gridStart.setDate(day1.getDate() - dow1); // rewind to Monday
+    return MILESTONE_WEEKS.map(w => {
+      const sunday = new Date(gridStart);
+      sunday.setDate(gridStart.getDate() + w * 7 - 1); // end of week w
+      return sunday.toDateString();
+    });
   }
-  document.getElementById('strike-warning').classList.toggle('hidden', state.strikes < 3);
-}
+  const BADGE_THRESHOLDS = [7, 14, 21];
 
-function showGraph() {
-  // Build unified day list from both weight and calories
-  const allDays = new Set([
-    ...Object.keys(state.weights).map(Number),
-    ...Object.keys(state.calories).map(Number)
-  ]);
-  const days = Array.from(allDays).sort((a, b) => a - b);
-
-  const modal = document.getElementById('modal-overlay');
-  modal.classList.remove('hidden');
-
-  const noData = document.getElementById('no-data');
-  const gc = document.getElementById('graph-container');
-
-  if (days.length === 0) {
-    gc.classList.add('hidden');
-    noData.classList.remove('hidden');
-    return;
+  function getGlobalRewards() {
+    const g = JSON.parse(localStorage.getItem('75hard_global') || '{}');
+    return {
+      cheatDays: g.cheatDays || 0,          // available cheat days
+      cheatDaysUsed: g.cheatDaysUsed || [], // array of dateStrs used on
+      restDays: g.restDays || 0,            // available rest days
+      restDayActive: g.restDayActive || null // dateStr it's active on
+    };
   }
 
-  gc.classList.remove('hidden');
-  noData.classList.add('hidden');
+  function saveGlobalRewards(rewards) {
+    const g = JSON.parse(localStorage.getItem('75hard_global') || '{}');
+    Object.assign(g, rewards);
+    localStorage.setItem('75hard_global', JSON.stringify(g));
+  }
 
-  if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+  function computeMilestonesEarned(dayMap, day1) {
+    let earned = 0;
+    getMilestoneDates(day1).forEach(dateStr => {
+      const s = dayMap[dateStr];
+      if (s && s.completed) earned++;
+    });
+    return earned;
+  }
 
-  const labels = days.map(d => `Day ${d}`);
-  const weightData = days.map(d => state.weights[d] != null ? state.weights[d] : null);
-  const calData    = days.map(d => state.calories[d] != null ? state.calories[d] : null);
+  function useCheatDay() {
+    const today = new Date().toDateString();
+    const r = getGlobalRewards();
+    if (r.cheatDays <= 0) return;
+    if (r.cheatDaysUsed.includes(today)) return;
+    r.cheatDays--;
+    r.cheatDaysUsed.push(today);
+    // Remove today's strike if it exists
+    todayStruck = false;
+    const g = JSON.parse(localStorage.getItem('75hard_global') || '{}');
+    strikes = Math.max(0, (g.strikes || 0) - 1);
+    g.strikes = strikes;
+    Object.assign(g, r);
+    localStorage.setItem('75hard_global', JSON.stringify(g));
+    renderStrikes();
+    renderHistory();
+    alert('🎉 Cheat day used! Today\'s strike has been removed.');
+  }
 
-  const wVals = weightData.filter(v => v !== null);
-  const cVals = calData.filter(v => v !== null);
-  const minW = wVals.length ? Math.min(...wVals) - 2 : 0;
-  const maxW = wVals.length ? Math.max(...wVals) + 2 : 100;
+  function useRestDay() {
+    const today = new Date().toDateString();
+    const r = getGlobalRewards();
+    if (r.restDays <= 0) return;
+    if (r.restDayActive === today) return;
+    r.restDays--;
+    r.restDayActive = today;
+    saveGlobalRewards(r);
+    applyRestDay(true);
+    renderHistory();
+  }
 
-  const ctx = document.getElementById('weight-chart').getContext('2d');
-  chartInstance = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [
-        {
-          label: 'Weight (kg)',
-          data: weightData,
-          borderColor: '#2196f3',
-          backgroundColor: 'rgba(33,150,243,0.07)',
-          pointBackgroundColor: '#2196f3',
-          pointBorderColor: '#fff',
-          pointBorderWidth: 2,
-          pointRadius: 5,
-          pointHoverRadius: 7,
-          fill: true,
-          tension: 0.35,
-          borderWidth: 2.5,
-          yAxisID: 'yWeight',
-          spanGaps: true,
-        },
-        {
-          label: 'Calories (kcal)',
-          data: calData,
-          borderColor: '#ff7043',
-          backgroundColor: 'rgba(255,112,67,0.07)',
-          pointBackgroundColor: '#ff7043',
-          pointBorderColor: '#fff',
-          pointBorderWidth: 2,
-          pointRadius: 5,
-          pointHoverRadius: 7,
-          fill: true,
-          tension: 0.35,
-          borderWidth: 2.5,
-          yAxisID: 'yKcal',
-          spanGaps: true,
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: {
-          display: true,
-          labels: { font: { family: 'DM Sans', size: 12 }, usePointStyle: true, padding: 16 }
-        },
-        tooltip: {
-          callbacks: {
-            label: ctx => ctx.dataset.yAxisID === 'yWeight'
-              ? ` ${ctx.parsed.y} kg`
-              : ` ${ctx.parsed.y} kcal`
+  function applyRestDay(active) {
+    const stepsTask = document.getElementById('task-workout1');
+    const stepsTag = document.getElementById('steps-tag');
+    const banner = document.getElementById('restDayBanner');
+    if (active) {
+      stepsTask.style.opacity = '0.6';
+      stepsTag.textContent = 'Optional';
+      stepsTag.style.borderColor = '#f5b942';
+      stepsTag.style.color = '#f5b942';
+      banner.style.display = 'block';
+    } else {
+      stepsTask.style.opacity = '';
+      stepsTag.textContent = 'Mandatory';
+      stepsTag.style.borderColor = '';
+      stepsTag.style.color = '';
+      banner.style.display = 'none';
+    }
+  }
+
+  function renderRewards(dayMap, day1) {
+    const r = getGlobalRewards();
+    const today = new Date().toDateString();
+    const cheatUsedToday = r.cheatDaysUsed.includes(today);
+    const restActiveToday = r.restDayActive === today;
+
+    // Check if rest day already active today on load
+    if (restActiveToday) applyRestDay(true);
+
+    const bar = document.getElementById('rewardsBar');
+    const list = document.getElementById('rewardsList');
+
+    if (r.cheatDays <= 0 && r.restDays <= 0 && !cheatUsedToday && !restActiveToday) {
+      bar.style.display = 'none';
+      return;
+    }
+    bar.style.display = 'block';
+
+    let html = '';
+    if (r.cheatDays > 0) {
+      html += `<button class="reward-chip" onclick="useCheatDay()">🎉 Cheat Day (${r.cheatDays} left)</button> `;
+    } else if (cheatUsedToday) {
+      html += `<span class="reward-chip used">🎉 Cheat Day Used</span> `;
+    }
+    if (r.restDays > 0) {
+      html += `<button class="reward-chip" onclick="useRestDay()">🌿 Rest Day (${r.restDays} left)</button>`;
+    } else if (restActiveToday) {
+      html += `<span class="reward-chip rest-active">🌿 Rest Day Active</span>`;
+    }
+    list.innerHTML = html;
+  }
+
+  function loadState() {
+    return JSON.parse(localStorage.getItem('75hard_global') || '{}');
+  }
+
+  function loadDayState() {
+    const today = new Date().toDateString();
+    return JSON.parse(localStorage.getItem('75hard_' + today) || '{}');
+  }
+
+  function saveState() {
+    const today = new Date().toDateString();
+    const state = {};
+    [...MANDATORY_TASKS, ...OPTIONAL_TASKS].forEach(t => { state[t] = document.getElementById('task-' + t).classList.contains('done'); });
+    state.weightDone = weightDone;
+    state.weightValue = document.getElementById('weightInput').value;
+    state.kcalDone = kcalDone;
+    state.kcalFail = kcalFail;
+    state.kcalValue = document.getElementById('kcalInput').value;
+    state.todayStruck = todayStruck;
+    state.daySubmitted = daySubmitted;
+    // Compute completion for history
+    let done = 0;
+    MANDATORY_TASKS.forEach(t => { if (state[t]) done++; });
+    if (state.weightDone) done++;
+    if (state.kcalDone && !state.kcalFail) done++;
+    state.completed = daySubmitted && done >= TOTAL;
+    state.progress = done;
+    localStorage.setItem('75hard_' + today, JSON.stringify(state));
+    // Preserve existing global data, only update strikes
+    const g = JSON.parse(localStorage.getItem('75hard_global') || '{}');
+    g.strikes = strikes;
+    localStorage.setItem('75hard_global', JSON.stringify(g));
+  }
+
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    document.getElementById('panel-' + tab).classList.add('active');
+    if (tab === 'history') renderHistory();
+  }
+
+  function renderHistory() {
+    const today = new Date().toDateString();
+    const grid = document.getElementById('historyGrid');
+    const summary = document.getElementById('historySummary');
+
+    // Load all logged day keys
+    const loggedKeys = Object.keys(localStorage)
+      .filter(k => k.startsWith('75hard_') && k !== '75hard_global');
+
+    // Sort logged days ascending to determine Day 1
+    const sortedLogged = loggedKeys
+      .map(k => k.replace('75hard_', ''))
+      .sort((a, b) => new Date(a) - new Date(b));
+
+    // Day 1 is the earliest logged day, or today if nothing yet
+    const day1 = sortedLogged.length > 0 ? new Date(sortedLogged[0]) : new Date(today);
+
+    // Build a map of dateStr -> state
+    const dayMap = {};
+    loggedKeys.forEach(k => {
+      const dateStr = k.replace('75hard_', '');
+      dayMap[dateStr] = JSON.parse(localStorage.getItem(k) || '{}');
+    });
+
+    // Stats
+    let totalComplete = 0, totalStruck = 0, streak = 0, streakBroken = false;
+    sortedLogged.forEach(dateStr => {
+      const s = dayMap[dateStr];
+      if (s.completed) totalComplete++;
+      if (s.todayStruck) totalStruck++;
+    });
+    for (let i = sortedLogged.length - 1; i >= 0; i--) {
+      if (dayMap[sortedLogged[i]].completed && !streakBroken) streak++;
+      else streakBroken = true;
+    }
+
+    // Streak badges
+    const earnedBadges = BADGE_THRESHOLDS.filter(t => streak >= t);
+
+    // Milestone reward computation
+    const milestonesEarned = computeMilestonesEarned(dayMap, day1);
+    const g = JSON.parse(localStorage.getItem('75hard_global') || '{}');
+    const prevMilestones = g.milestonesAwarded || 0;
+    if (milestonesEarned > prevMilestones) {
+      const newRewards = milestonesEarned - prevMilestones;
+      g.milestonesAwarded = milestonesEarned;
+      g.cheatDays = (g.cheatDays || 0) + newRewards;
+      g.restDays = (g.restDays || 0) + newRewards;
+      localStorage.setItem('75hard_global', JSON.stringify(g));
+    }
+
+    const badgeHTML = earnedBadges.length > 0
+      ? `<div class="streak-badges">${earnedBadges.map(t => `<span class="streak-badge">🏅 ${t}-Day Streak</span>`).join('')}</div>`
+      : '';
+
+    summary.innerHTML = `
+      <div class="hsummary-item">
+        <div class="hsummary-val" style="color:#f5b942">${totalComplete}</div>
+        <div class="hsummary-label">Days Complete</div>
+      </div>
+      <div class="hsummary-item">
+        <div class="hsummary-val" style="color:var(--orange)">${totalStruck}</div>
+        <div class="hsummary-label">Strikes Earned</div>
+      </div>
+      <div class="hsummary-item">
+        <div class="hsummary-val" style="color:var(--white)">${streak}</div>
+        <div class="hsummary-label">Current Streak</div>
+      </div>
+      <div class="hsummary-item">
+        <div class="hsummary-val" style="color:var(--faded)">${sortedLogged.length}/75</div>
+        <div class="hsummary-label">Days Logged</div>
+      </div>
+      ${badgeHTML}
+    `;
+
+    // Render all 81 days
+    const dowStyle = `style="text-align:center;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:#3a3d45;padding:4px 0 6px;font-family:'Space Mono',monospace;"`;
+    let html = `<div ${dowStyle}>Mon</div><div ${dowStyle}>Tue</div><div ${dowStyle}>Wed</div><div ${dowStyle}>Thu</div><div ${dowStyle}>Fri</div><div ${dowStyle}>Sat</div><div ${dowStyle}>Sun</div>`;
+
+    // Milestone dates = end-of-week Sundays at weeks 3, 6, 9, 12
+    const milestoneDateSet = new Set(getMilestoneDates(day1));
+
+    // Pad empty cells before day 1 so day 1 lands on correct weekday (Mon=0)
+    const dow1 = (day1.getDay() + 6) % 7; // convert Sun=0 to Mon=0
+
+    // 15 weeks total grid: pad to Monday start, fill to Sunday end
+    // Total cells = 15 * 7 = 105, minus leading padding = days to render
+    const totalCells = 15 * 7;
+    const daysToRender = totalCells - dow1;
+
+    // Pad empty cells before day 1
+    for (let p = 0; p < dow1; p++) {
+      html += `<div></div>`;
+    }
+
+    for (let i = 0; i < daysToRender; i++) {
+      const d = new Date(day1);
+      d.setDate(day1.getDate() + i);
+      const dateStr = d.toDateString();
+      const isToday = dateStr === today;
+      const isFuture = d > new Date(today);
+      const s = dayMap[dateStr];
+      const hasData = !!s;
+
+      let cls = 'future';
+      if (hasData) {
+        cls = s.todayStruck ? 'struck' : (s.completed ? 'complete' : 'incomplete');
+      } else if (!isFuture) {
+        cls = 'incomplete';
+      }
+      if (isToday) cls += ' today-card';
+
+      const monthDay = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+      let tooltip = '';
+      const lines = [];
+      if (isToday) lines.push('Today — ' + monthDay);
+      else lines.push(monthDay);
+      if (hasData) {
+        if (s.weightValue) lines.push(s.weightValue + ' kg');
+        if (s.kcalValue) lines.push(s.kcalValue + ' kcal');
+      }
+      tooltip = `<div class="hcard-tooltip">${lines.join('<br>')}</div>`;
+
+      const isEditable = !isToday && !hasData;
+      const clickAttr = isEditable ? `onclick="openBackdate('${dateStr}')"` : '';
+      const editHint = isEditable ? `<div style="font-size:7px;color:#4a4e5a;letter-spacing:1px;margin-top:3px;">+ LOG</div>` : '';
+
+      const isMilestone = milestoneDateSet.has(dateStr);
+      if (isMilestone && hasData && s.completed) cls = 'milestone';
+
+      html += `<div class="history-card ${cls}" ${clickAttr} style="${isEditable ? 'cursor:pointer;' : ''}">
+        ${tooltip}
+        <div class="hcard-num">${i + 1}</div>
+        <div class="hcard-date">${monthDay}</div>
+        <div class="hcard-dot"></div>
+        ${isMilestone ? `<div class="hcard-trophy">${hasData && s.completed ? '🏆' : '⭐'}</div>` : ''}
+        ${editHint}
+      </div>`;
+    }
+
+    grid.innerHTML = html;
+    renderRewards(dayMap, day1);
+  }
+
+  let bdState = {};
+  let bdDateStr = '';
+
+  function openBackdate(dateStr) {
+    bdDateStr = dateStr;
+    bdState = { workout1: false, workout2: false };
+    // Reset UI
+    ['workout1','workout2'].forEach(k => {
+      document.getElementById('bd-' + k).classList.remove('on');
+    });
+    document.getElementById('bd-weight').value = '';
+    document.getElementById('bd-kcal').value = '';
+    const d = new Date(dateStr);
+    const isFuture = d > new Date();
+    document.getElementById('bdModalTitle').textContent = isFuture ? 'Log Upcoming Day' : 'Log Missed Day';
+    document.getElementById('bdDateLabel').textContent =
+      d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    document.getElementById('backdateOverlay').classList.add('show');
+  }
+
+  function bdToggle(key) {
+    bdState[key] = !bdState[key];
+    document.getElementById('bd-' + key).classList.toggle('on', bdState[key]);
+  }
+
+  function closeBackdate() {
+    document.getElementById('backdateOverlay').classList.remove('show');
+  }
+
+  function saveBackdate() {
+    const weightVal = document.getElementById('bd-weight').value;
+    const kcalVal = document.getElementById('bd-kcal').value;
+    const kcalNum = parseFloat(kcalVal);
+    const weightNum = parseFloat(weightVal);
+    const kcalFailed = !isNaN(kcalNum) && kcalNum > KCAL_LIMIT;
+    const kcalLogged = !isNaN(kcalNum) && kcalNum >= 0 && kcalVal !== '';
+    const weightLogged = !isNaN(weightNum) && weightNum > 0;
+
+    const allMandatory = bdState.workout1 && weightLogged && kcalLogged && !kcalFailed;
+    const struck = !allMandatory;
+
+    let done = (bdState.workout1 ? 1 : 0) + (weightLogged ? 1 : 0) + (kcalLogged && !kcalFailed ? 1 : 0);
+
+    const state = {
+      workout1: bdState.workout1,
+      workout2: bdState.workout2,
+      weightDone: weightLogged,
+      weightValue: weightVal,
+      kcalDone: kcalLogged,
+      kcalFail: kcalFailed,
+      kcalValue: kcalVal,
+      todayStruck: struck,
+      daySubmitted: true,
+      completed: allMandatory,
+      progress: done
+    };
+
+    localStorage.setItem('75hard_' + bdDateStr, JSON.stringify(state));
+
+    // Add a strike if day failed
+    if (struck) {
+      strikes++;
+      localStorage.setItem('75hard_global', JSON.stringify({ strikes }));
+      renderStrikes();
+    }
+
+    closeBackdate();
+    renderHistory();
+  }
+
+  function submitDay() {
+    if (daySubmitted) {
+      // Undo submission
+      if (todayStruck) {
+        strikes = Math.max(0, strikes - 1);
+        todayStruck = false;
+        renderStrikes();
+      }
+      daySubmitted = false;
+      saveState();
+      updateSubmitBtn();
+      renderStrikes();
+      return;
+    }
+    const allMandatoryDone = MANDATORY_TASKS.every(t => document.getElementById('task-' + t).classList.contains('done'));
+    const dayFailed = !allMandatoryDone || !weightDone || kcalFail || !kcalDone;
+    if (dayFailed && !todayStruck) {
+      todayStruck = true;
+      strikes++;
+      renderStrikes();
+    }
+    daySubmitted = true;
+    saveState();
+    updateSubmitBtn();
+    renderStrikes();
+  }
+
+  function updateSubmitBtn() {
+    const btn = document.getElementById('submitBtn');
+    if (!btn) return;
+    if (daySubmitted) {
+      btn.disabled = false;
+      btn.classList.add('submitted');
+      const allDone = MANDATORY_TASKS.every(t => document.getElementById('task-' + t).classList.contains('done'));
+      const failed = !allDone || !weightDone || kcalFail || !kcalDone;
+      btn.textContent = failed ? '⚡ Submitted — tap to undo' : '✓ Submitted — tap to undo';
+    } else {
+      btn.disabled = false;
+      btn.classList.remove('submitted');
+      btn.textContent = 'Submit Day';
+    }
+  }
+
+  function renderStrikes() {
+    document.getElementById('strikeNumber').textContent = strikes;
+
+    const warn = document.getElementById('strikesWarning');
+    warn.textContent = '';
+
+    // Compute streak from localStorage
+    const loggedKeys = Object.keys(localStorage)
+      .filter(k => k.startsWith('75hard_') && k !== '75hard_global')
+      .map(k => k.replace('75hard_', ''))
+      .sort((a, b) => new Date(b) - new Date(a));
+    let streak = 0;
+    for (const dateStr of loggedKeys) {
+      const s = JSON.parse(localStorage.getItem('75hard_' + dateStr) || '{}');
+      if (s.completed) streak++;
+      else break;
+    }
+    document.getElementById('streakCount').textContent = streak;
+
+    const display = document.getElementById('streakDisplay');
+    display.classList.remove('streak-l1','streak-l2','streak-l3','streak-l4');
+    if (streak >= 21) display.classList.add('streak-l4');
+    else if (streak >= 14) display.classList.add('streak-l3');
+    else if (streak >= 7) display.classList.add('streak-l2');
+    else if (streak >= 3) display.classList.add('streak-l1');
+  }
+
+  let chartInstance = null;
+  let showKcal = false;
+
+  function showGraph() {
+    document.getElementById('graphOverlay').classList.add('show');
+    renderChart();
+  }
+
+  function toggleKcalLine() {
+    showKcal = !showKcal;
+    const box = document.getElementById('kcalToggleBox');
+    box.style.background = showKcal ? 'var(--red)' : '';
+    box.style.borderColor = showKcal ? 'var(--red)' : '#4a4e5a';
+    box.textContent = showKcal ? '✓' : '';
+    box.style.color = '#000';
+    box.style.fontSize = '11px';
+    box.style.fontWeight = '700';
+    renderChart();
+  }
+
+  function renderChart() {
+    const loggedKeys = Object.keys(localStorage)
+      .filter(k => k.startsWith('75hard_') && k !== '75hard_global')
+      .sort((a, b) => new Date(a.replace('75hard_', '')) - new Date(b.replace('75hard_', '')));
+
+    const labels = [], weightData = [], kcalData = [];
+
+    loggedKeys.forEach(k => {
+      const s = JSON.parse(localStorage.getItem(k) || '{}');
+      if (!s.weightValue && !s.kcalValue) return;
+      const d = new Date(k.replace('75hard_', ''));
+      labels.push(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+      weightData.push(s.weightValue ? parseFloat(s.weightValue) : null);
+      kcalData.push(s.kcalValue ? parseFloat(s.kcalValue) : null);
+    });
+
+    const ctx = document.getElementById('progressChart').getContext('2d');
+    if (chartInstance) chartInstance.destroy();
+
+    const datasets = [
+      {
+        label: 'Weight (kg)',
+        data: weightData,
+        borderColor: '#f5b942',
+        backgroundColor: 'rgba(245,185,66,0.1)',
+        borderWidth: 2,
+        pointRadius: 3,
+        pointBackgroundColor: '#f5b942',
+        tension: 0.35,
+        fill: true,
+        yAxisID: 'yWeight',
+        spanGaps: true,
+      }
+    ];
+
+    if (showKcal) {
+      datasets.push({
+        label: 'Kcal',
+        data: kcalData,
+        borderColor: '#f5b942',
+        backgroundColor: 'rgba(212,135,10,0.08)',
+        borderWidth: 2,
+        pointRadius: 3,
+        pointBackgroundColor: '#f5b942',
+        tension: 0.35,
+        fill: false,
+        yAxisID: 'yKcal',
+        spanGaps: true,
+        borderDash: [4, 3],
+      });
+    }
+
+    chartInstance = new Chart(ctx, {
+      type: 'line',
+      data: { labels, datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: {
+            labels: {
+              color: '#7a7e8a',
+              font: { family: 'Space Mono', size: 10 },
+              boxWidth: 12,
+            }
+          },
+          tooltip: {
+            backgroundColor: '#1e2028',
+            borderColor: '#383c47',
+            borderWidth: 1,
+            titleColor: '#f0ede6',
+            bodyColor: '#7a7e8a',
+            titleFont: { family: 'Space Mono', size: 11 },
+            bodyFont: { family: 'Space Mono', size: 11 },
           }
-        }
-      },
-      scales: {
-        yWeight: {
-          type: 'linear',
-          position: 'left',
-          min: minW, max: maxW,
-          title: { display: true, text: 'Weight (kg)', font: { family: 'DM Sans', size: 12 }, color: '#2196f3' },
-          ticks: { font: { family: 'DM Sans' }, color: '#2196f3', callback: v => `${v} kg` },
-          grid: { color: '#f0f0f0' }
         },
-        yKcal: {
-          type: 'linear',
-          position: 'right',
-          title: { display: true, text: 'Calories (kcal)', font: { family: 'DM Sans', size: 12 }, color: '#ff7043' },
-          ticks: { font: { family: 'DM Sans' }, color: '#ff7043', callback: v => `${v} kcal` },
-          grid: { drawOnChartArea: false },
-        },
-        x: {
-          ticks: { font: { family: 'DM Sans', size: 11 }, maxRotation: 45 },
-          grid: { display: false }
+        scales: {
+          x: {
+            ticks: { color: '#4a4e5a', font: { family: 'Space Mono', size: 9 }, maxRotation: 45 },
+            grid: { color: '#1e2028' },
+          },
+          yWeight: {
+            type: 'linear',
+            position: 'left',
+            ticks: { color: '#74c69d', font: { family: 'Space Mono', size: 9 } },
+            grid: { color: '#1e2028' },
+            title: { display: true, text: 'kg', color: '#74c69d', font: { family: 'Space Mono', size: 9 } },
+          },
+          ...(showKcal ? {
+            yKcal: {
+              type: 'linear',
+              position: 'right',
+              ticks: { color: '#2d6a4f', font: { family: 'Space Mono', size: 9 } },
+              grid: { drawOnChartArea: false },
+              title: { display: true, text: 'kcal', color: '#2d6a4f', font: { family: 'Space Mono', size: 9 } },
+            }
+          } : {})
         }
       }
-    }
-  });
-}
-
-function closeModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
-function closeModalBg(e) { if (e.target === document.getElementById('modal-overlay')) closeModal(); }
-
-function switchView(v) {
-  document.getElementById('view-today').classList.toggle('hidden', v !== 'today');
-  document.getElementById('view-overview').classList.toggle('hidden', v !== 'overview');
-  document.getElementById('btn-today').classList.toggle('active', v === 'today');
-  document.getElementById('btn-overview').classList.toggle('active', v === 'overview');
-  if (v === 'overview') renderOverview();
-}
-
-function renderOverview() {
-  const todayDay = getTodayDay();
-  const grid = document.getElementById('overview-grid');
-  grid.innerHTML = '';
-  for (let day = 1; day <= 75; day++) {
-    const complete = dayComplete(day);
-    const partial = dayPartial(day);
-    const isToday = day === todayDay;
-    const div = document.createElement('div');
-    div.className = 'grid-day ' + (complete ? 'complete' : partial ? 'partial' : 'empty') + (isToday ? ' today' : '');
-    div.innerHTML = `<span class="grid-day-num">${day}</span>${complete ? '<span class="tick">✓</span>' : ''}`;
-    div.onclick = () => { state.viewDay = day; save(); switchView('today'); render(); };
-    grid.appendChild(div);
+    });
   }
-}
 
-// Init
-if (state.startDate) {
-  state.viewDay = getTodayDay();
-  initTracker();
-} else {
-  document.getElementById('start-date-input').value = getTodayStr();
-}
+  function showWipeConfirm() {
+    document.getElementById('wipeOverlay').classList.add('show');
+  }
+
+  function confirmWipe() {
+    Object.keys(localStorage).filter(k => k.startsWith('75hard_')).forEach(k => localStorage.removeItem(k));
+    strikes = 0; todayStruck = false; daySubmitted = false;
+    weightDone = false; kcalDone = false; kcalFail = false;
+    [...MANDATORY_TASKS, ...OPTIONAL_TASKS].forEach(t => {
+      const el = document.getElementById('task-' + t);
+      if (el) el.classList.remove('done');
+    });
+    document.getElementById('weightInput').value = '';
+    document.getElementById('kcalInput').value = '';
+    document.getElementById('wipeOverlay').classList.remove('show');
+    renderStrikes();
+    updateWeighUI(); updateKcalUI(); updateProgress(); updateSubmitBtn();
+    renderHistory();
+  }
+
+  function confirmRestart() {
+    strikes = 0; todayStruck = false;
+    [...MANDATORY_TASKS, ...OPTIONAL_TASKS].forEach(t => document.getElementById('task-' + t).classList.remove('done'));
+    weightDone = false; kcalDone = false; kcalFail = false;
+    document.getElementById('weightInput').value = '';
+    document.getElementById('kcalInput').value = '';
+    updateWeighUI(); updateKcalUI(); renderStrikes();
+    for (const key of Object.keys(localStorage)) {
+      if (key.startsWith('75hard_')) localStorage.removeItem(key);
+    }
+    saveState(); updateProgress();
+  }
+
+  function toggleTask(id) {
+    const el = document.getElementById('task-' + id);
+    el.classList.toggle('done');
+    el.classList.add('pop');
+    setTimeout(() => el.classList.remove('pop'), 300);
+    updateProgress();
+    saveState();
+  }
+
+  function updateProgress() {
+    let done = 0;
+    MANDATORY_TASKS.forEach(t => { if (document.getElementById('task-' + t).classList.contains('done')) done++; });
+    if (weightDone) done++;
+    if (kcalDone && !kcalFail) done++;
+    const pct = (done / TOTAL) * 100;
+    document.getElementById('progressBar').style.width = pct + '%';
+    document.getElementById('progressCount').textContent = done + '/' + TOTAL;
+    document.getElementById('completeBanner').style.display = (daySubmitted && done === TOTAL) ? 'block' : 'none';
+  }
+
+  const now = new Date();
+  document.getElementById('dateDisplay').textContent =
+    now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+  function checkWeight() {
+    const raw = document.getElementById('weightInput').value.trim();
+    const val = parseFloat(raw);
+    weightDone = raw !== '' && !isNaN(val) && val > 0;
+    updateWeighUI(); saveState(); updateProgress();
+  }
+
+  function updateWeighUI() {
+    const container = document.getElementById('task-weigh-container');
+    const check = document.getElementById('weigh-check');
+    const title = document.getElementById('weigh-title');
+    const val = document.getElementById('weightInput').value;
+    if (weightDone) {
+      container.classList.add('done'); check.classList.add('done');
+      title.style.textDecoration = 'line-through'; title.style.color = 'var(--faded)';
+      document.getElementById('weighHistory').style.color = 'var(--orange)';
+      document.getElementById('weighHistory').textContent = '✓ Logged: ' + val + ' kg';
+    } else {
+      container.classList.remove('done'); check.classList.remove('done');
+      title.style.textDecoration = ''; title.style.color = '';
+      document.getElementById('weighHistory').textContent = '';
+    }
+  }
+
+  function checkKcal() {
+    const raw = document.getElementById('kcalInput').value.trim();
+    const val = parseFloat(raw);
+    kcalDone = raw !== '' && !isNaN(val) && val >= 0;
+    kcalFail = kcalDone && val > KCAL_LIMIT;
+    updateKcalUI(); saveState(); updateProgress();
+  }
+
+  function updateKcalUI() {
+    const container = document.getElementById('task-kcal-container');
+    const check = document.getElementById('kcal-check');
+    const title = document.getElementById('kcal-title');
+    const statusEl = document.getElementById('kcalStatus');
+    const val = parseFloat(document.getElementById('kcalInput').value);
+
+    if (!kcalDone) {
+      container.classList.remove('done'); container.style.borderLeftColor = '';
+      check.classList.remove('done'); check.style.background = ''; check.style.borderColor = '';
+      check.querySelector('.check-icon').style.display = '';
+      check.querySelector('.check-icon').textContent = '✓';
+      title.style.textDecoration = ''; title.style.color = '';
+      statusEl.textContent = '';
+      return;
+    }
+
+    if (kcalFail) {
+      container.classList.remove('done'); container.style.borderLeftColor = '#2d6a4f';
+      check.classList.remove('done');
+      check.style.background = '#2d6a4f'; check.style.borderColor = '#2d6a4f';
+      check.querySelector('.check-icon').style.display = 'block';
+      check.querySelector('.check-icon').textContent = '✗';
+      title.style.textDecoration = 'none'; title.style.color = '#2d6a4f';
+      statusEl.style.color = '#2d6a4f';
+      statusEl.textContent = '✗ Over limit by ' + Math.round(val - KCAL_LIMIT) + ' kcal — strike logged';
+    } else {
+      container.classList.add('done'); container.style.borderLeftColor = '';
+      check.classList.add('done'); check.style.background = ''; check.style.borderColor = '';
+      check.querySelector('.check-icon').style.display = 'block';
+      check.querySelector('.check-icon').textContent = '✓';
+      title.style.textDecoration = 'line-through'; title.style.color = 'var(--faded)';
+      statusEl.style.color = 'var(--orange)';
+      statusEl.textContent = '✓ Under limit — ' + Math.round(KCAL_LIMIT - val) + ' kcal remaining';
+    }
+  }
+
+  // ── INIT ───────────────────────────────────────────────────
+
+  function initUI() {
+    const globalState = loadState();
+    strikes = globalState.strikes || 0;
+    const state = loadDayState();
+    [...MANDATORY_TASKS, ...OPTIONAL_TASKS].forEach(t => {
+      const el = document.getElementById('task-' + t);
+      if (el) el.classList.toggle('done', !!state[t]);
+    });
+    weightDone = state.weightDone || false;
+    kcalDone = state.kcalDone || false;
+    kcalFail = state.kcalFail || false;
+    todayStruck = state.todayStruck || false;
+    daySubmitted = state.daySubmitted || false;
+    const wi = document.getElementById('weightInput');
+    const ki = document.getElementById('kcalInput');
+    if (wi) wi.value = state.weightValue || '';
+    if (ki) ki.value = state.kcalValue || '';
+    renderStrikes();
+    updateWeighUI(); updateKcalUI(); updateProgress(); updateSubmitBtn();
+    const r = getGlobalRewards();
+    if (r.restDayActive === new Date().toDateString()) applyRestDay(true);
+  }
+
+  initUI();
 </script>
+
+<!-- Backdate modal -->
+<div class="backdate-overlay" id="backdateOverlay">
+  <div class="backdate-modal">
+    <div class="backdate-header">
+      <h3 id="backdateTitle">LOG MISSED DAY</h3>
+      <p id="backdateSubtitle">Retroactive entry</p>
+    </div>
+    <div class="backdate-body">
+      <div class="backdate-task" id="bt-steps" onclick="toggleBt('steps')">
+        <div class="bt-check" id="btc-steps"></div>
+        <div class="bt-title">6,000 Steps</div>
+      </div>
+      <div class="backdate-task" id="bt-workout" onclick="toggleBt('workout')">
+        <div class="bt-check" id="btc-workout"></div>
+        <div class="bt-title">Workout — 45 Minutes <span style="font-size:10px;color:#4a4e5a;font-weight:400;">(optional)</span></div>
+      </div>
+      <div class="backdate-inputs">
+        <div class="backdate-input-wrap">
+          <label>Weight (kg)</label>
+          <input type="number" id="bt-weight" placeholder="e.g. 82.5" step="0.1" min="20" max="300" />
+        </div>
+        <div class="backdate-input-wrap" id="bt-kcal-wrap">
+          <label>Calories (kcal)</label>
+          <input type="number" id="bt-kcal" placeholder="e.g. 1600" step="1" min="0" max="9999" />
+        </div>
+      </div>
+      <div style="font-size:10px; color:var(--faded); letter-spacing:1px; margin-top:4px;" id="bt-kcal-hint"></div>
+    </div>
+    <div class="backdate-footer">
+      <button class="backdate-submit" onclick="submitBackdate()">Submit Day</button>
+      <button class="backdate-cancel" onclick="closeBackdate()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
