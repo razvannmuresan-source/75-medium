@@ -1383,11 +1383,14 @@
     let totalComplete = 0, totalStruck = 0, streak = 0, streakBroken = false;
     sortedLogged.forEach(dateStr => {
       const s = dayMap[dateStr];
+      if (s.startDay) return;
       if (s.completed) totalComplete++;
       if (s.todayStruck) totalStruck++;
     });
     for (let i = sortedLogged.length - 1; i >= 0; i--) {
-      if (dayMap[sortedLogged[i]].completed && !streakBroken) streak++;
+      const s = dayMap[sortedLogged[i]];
+      if (s.startDay) continue;
+      if (s.completed && !streakBroken) streak++;
       else streakBroken = true;
     }
 
@@ -1453,7 +1456,7 @@
       const isToday = dateStr === today;
       const isFuture = d > new Date(today);
       const s = dayMap[dateStr];
-      const hasData = !!s;
+      const hasData = !!s && !s.startDay;
 
       let cls = 'future';
       if (hasData) {
